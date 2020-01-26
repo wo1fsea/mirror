@@ -10,29 +10,22 @@
 
 class type_descriptor_base;
 
-class member_descriptor
+struct member_descriptor
 {
-    public:
-        std::string name;
-        size_t offset;
-        type_descriptor_base *type_descriptor_ptr;
-        member_descriptor(const std::string member_name, size_t member_offset, type_descriptor_base *member_type_descriptor_ptr):
-        name(member_name), offset(member_offset), type_descriptor_ptr(member_type_descriptor_ptr){}
+    const char *name;
+    size_t offset;
+    type_descriptor_base *type_descriptor_ptr;
 };
 
 class type_descriptor_base
 {
     public:
-        std::string name;
+    using members_descriptor = std::vector<member_descriptor>;
+        const char *name;
         size_t size;
-        std::vector<member_descriptor> members;
-        type_descriptor_base(const std::string type_name, size_t type_size):
-        name(type_name), size(type_size){}
-
-        type_descriptor_base& add_member(member_descriptor m)
-        {
-            return *this;
-        }
+        members_descriptor members;
+        type_descriptor_base(const char *type_name, size_t type_size, members_descriptor type_members={}):
+        name(type_name), size(type_size), members(type_members){}
 };
 
 template<typename T>
@@ -40,11 +33,8 @@ class type_descriptor: public type_descriptor_base
 {
     using type = T;
     public:
-        type_descriptor(const std::string type_name, size_t type_size): 
-        type_descriptor_base(type_name, type_size)
-        {
-            
-        }
+        type_descriptor(const char *type_name, size_t type_size, members_descriptor type_members={}): 
+        type_descriptor_base(type_name, type_size, type_members){}
 };
 
 template<typename T>
@@ -55,7 +45,7 @@ struct type_descriptor_resolver{
    }
 };
 
-#define ENABLE_TYPE_DESCRIPTOR_RESOLVER(x) \
+#define PRIMITIVE_TYPE_DESCRIPTOR_RESOLVER(x) \
 template <> \
 struct type_descriptor_resolver<x>{ \
    static type_descriptor<x>* get() \
@@ -66,12 +56,35 @@ struct type_descriptor_resolver<x>{ \
 };
 
 
-#define ENABLE_TYPE_DESCRIPTOR_RESOLVER_FOR_EACH(r, data, i, x) \
-ENABLE_TYPE_DESCRIPTOR_RESOLVER(x)
+#define PRIMITIVE_TYPE_DESCRIPTOR_RESOLVER_FOR_EACH(r, data, i, x) \
+PRIMITIVE_TYPE_DESCRIPTOR_RESOLVER(x)
 
-BOOST_PP_SEQ_FOR_EACH_I(ENABLE_TYPE_DESCRIPTOR_RESOLVER_FOR_EACH, data, BOOST_PP_TUPLE_TO_SEQ(BOOST_PP_TUPLE_SIZE(PRIMITIVE_TYPE), PRIMITIVE_TYPE))
+BOOST_PP_SEQ_FOR_EACH_I(PRIMITIVE_TYPE_DESCRIPTOR_RESOLVER_FOR_EACH, data, BOOST_PP_TUPLE_TO_SEQ(BOOST_PP_TUPLE_SIZE(PRIMITIVE_TYPE), PRIMITIVE_TYPE))
 
-class type_descriptor_manager
-{
+#define REFLECTABLE_MEMBER(member_name) \
+member_descriptor{ \
+    #member_name, \
+    offsetof(T, member_name), \
+    type_descriptor_resolver<decltype(T::member_name)>::get() \
+},
 
+#define REFLECTABLE_MEMBER_FOR_EACH(r, data, i, x) \
+REFLECTABLE_MEMBER(x)
+
+
+#define REFLECTABLE(class_name, members) \
+template <> \
+struct type_descriptor_resolver<class_name>{ \
+    using T = class_name; \
+    static type_descriptor<T>* get() \
+    { \
+        static type_descriptor<T> td( \
+		    #class_name, \
+		    sizeof(T), \
+		    { \
+                BOOST_PP_SEQ_FOR_EACH_I(REFLECTABLE_MEMBER_FOR_EACH, data, BOOST_PP_TUPLE_TO_SEQ(BOOST_PP_TUPLE_SIZE(members), members)) \
+		    } \
+	   ); \
+       return &td; \
+    } \
 };

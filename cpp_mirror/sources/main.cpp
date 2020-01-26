@@ -15,23 +15,16 @@ class test_class{
 	double double_member;
 };
 
-template <> 
-struct type_descriptor_resolver<test_class>{ 
-   static type_descriptor<test_class>* get() 
-   { 
-       static type_descriptor<test_class> td("test_class", sizeof(test_class));
-	   td.members = {
-		   member_descriptor(
-			   "bool_member", 
-				offsetof(test_class, bool_member),
-			   type_descriptor_resolver<decltype(test_class::bool_member)>::get()
-		   ),
-
-	   };
-       return &td; 
-   } 
-};
-
+REFLECTABLE(
+	test_class, 
+	(
+		bool_member, 
+		char_member, 
+		int_member, 
+		float_member, 
+		double_member
+	)
+)
 
 int main() {
 	int i = 0;
@@ -41,5 +34,7 @@ int main() {
 		std::cout << it.type_descriptor_ptr->name << std::endl;
 	}
 	std::cout << td->name << ", " << td->size << std::endl;
+	std::cout << sizeof(std::vector<member_descriptor>) << std::endl;
+	std::cout << sizeof(std::vector<member_descriptor>*) << std::endl;
 	return 0;
 }

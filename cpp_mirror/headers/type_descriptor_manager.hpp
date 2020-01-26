@@ -3,5 +3,5 @@
 
 class type_descriptor_manager
 {
-    map<std:sting, type_descriptor_base*> type_descriptor_map;
+    std::map<std::string, type_descriptor_base*> type_descriptor_map;
 };
