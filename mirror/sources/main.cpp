@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <functional>
 
 #include "type_descriptor.hpp"
 
@@ -13,6 +14,9 @@ class test_class{
 
 	float float_member;
 	double double_member;
+
+	test_class(){}
+	int a(int a, int b, int c, int d){return a+b+c+d;}
 };
 
 REFLECTABLE(
@@ -27,14 +31,19 @@ REFLECTABLE(
 )
 
 int main() {
-	int i = 0;
-	auto td = type_descriptor_resolver<test_class>::get();
+	test_class tc;
+	auto td = type_descriptor_resolver<decltype(tc)>::get();
+	std::cout << td->set_property(&tc, "int_member", 1) << std::endl;
+	std::cout << std::any_cast<double>(td->get_property(&tc, "double_member")) << std::endl;
+	std::cout << "a " << tc.int_member << std::endl;
+
 	for(auto it : td->members)
 	{
 		std::cout << it.type_descriptor_ptr->name << std::endl;
 	}
 	std::cout << td->name << ", " << td->size << std::endl;
-	std::cout << sizeof(std::vector<member_descriptor>) << std::endl;
-	std::cout << sizeof(std::vector<member_descriptor>*) << std::endl;
+	
 	return 0;
 }
+
+
