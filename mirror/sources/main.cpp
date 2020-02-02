@@ -33,9 +33,9 @@ REFLECTABLE(
 int main() {
 	test_class tc;
 	auto td = type_descriptor_resolver<decltype(tc)>::get();
-	std::cout << td->set_property(&tc, "int_member", 1) << std::endl;
-	std::cout << std::any_cast<double>(td->get_property(&tc, "double_member")) << std::endl;
-	std::cout << "a " << tc.int_member << std::endl;
+	std::cout << td->set_property(&tc, "float_member", 1) << std::endl;
+	std::cout << std::any_cast<float>(td->get_property(&tc, "float_member")) << std::endl;
+	std::cout << "a " << tc.float_member << std::endl;
 
 	for(auto it : td->members)
 	{

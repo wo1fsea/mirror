@@ -3,12 +3,12 @@ project(cpp_mirror)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(cpp_mirror/headers/
+include_directories(mirror/headers/
                    /usr/local/Cellar/boost/1.72.0/include/)
 
-file(GLOB PROJECT_HEADERS cpp_mirror/headers/*.hpp
-                          cpp_mirror/headers/*.h)
-file(GLOB PROJECT_SOURCES cpp_mirror/sources/*.cpp)
+file(GLOB PROJECT_HEADERS mirror/headers/*.hpp
+                          mirror/headers/*.h)
+file(GLOB PROJECT_SOURCES mirror/sources/*.cpp)
 
 file(GLOB PROJECT_CONFIGS CMakeLists.txt
                           Readme.md

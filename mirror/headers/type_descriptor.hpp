@@ -9,6 +9,32 @@
 
 class type_descriptor_base;
 
+template<typename T>
+struct type_converter{
+   static std::any convert(std::any value)
+   {
+        return value;
+   }
+};
+
+template<>
+struct type_converter<float>{
+   static std::any convert(std::any value)
+   {
+       if(value.type() == typeid(double))
+       {
+           auto double_value = std::any_cast<double>(value);
+           return std::any((float)double_value);
+       }
+       if(value.type() == typeid(int))
+       {
+           auto int_value = std::any_cast<int>(value);
+           return std::any((float)int_value);
+       }
+       return value;
+   }
+};
+
 struct member_descriptor
 {
     const char *name;
@@ -19,11 +45,11 @@ struct member_descriptor
 class type_descriptor_base
 {
     public:
-        using members_descriptor = std::vector<member_descriptor>;
+        using member_descriptors = std::vector<member_descriptor>;
         const char *name;
         size_t size;
-        members_descriptor members;
-        type_descriptor_base(const char *type_name, size_t type_size, members_descriptor type_members={}):
+        member_descriptors members;
+        type_descriptor_base(const char *type_name, size_t type_size, member_descriptors type_members={}):
         name(type_name), size(type_size), members(type_members){}
 
         virtual member_descriptor * get_member_descriptor(std::string member_name)=0;
@@ -36,7 +62,7 @@ class type_descriptor: public type_descriptor_base
 {
     using type = T;
     public:
-        type_descriptor(const char *type_name, size_t type_size, members_descriptor type_members={}): 
+        type_descriptor(const char *type_name, size_t type_size, member_descriptors type_members={}): 
         type_descriptor_base(type_name, type_size, type_members){}
 
         member_descriptor * get_member_descriptor(std::string member_name)
@@ -94,8 +120,9 @@ class type_descriptor: public type_descriptor_base
         {
             try
             {
-                auto t_ptr = static_cast<T*>(ptr); 
-                *t_ptr = std::any_cast<T>(value);
+                auto t_ptr = static_cast<T*>(ptr);
+                auto value2 = type_converter<T>::convert(value);
+                *t_ptr = std::any_cast<T>(value2);
                 return true;
             }
             catch (const std::bad_any_cast& e)
@@ -127,14 +154,14 @@ struct type_descriptor_resolver<x>{ \
        static type_descriptor<x> td(#x, sizeof(x)); \
        return &td; \
    } \
-};
+}; 
 
 
 #define PRIMITIVE_TYPE_DESCRIPTOR_RESOLVER_FOR_EACH(r, data, i, x) \
-PRIMITIVE_TYPE_DESCRIPTOR_RESOLVER(x)
+PRIMITIVE_TYPE_DESCRIPTOR_RESOLVER(x) 
 
 #define PRIMITIVE_TYPE_POINTER_DESCRIPTOR_RESOLVER_FOR_EACH(r, data, i, x) \
-PRIMITIVE_TYPE_DESCRIPTOR_RESOLVER(x*)
+PRIMITIVE_TYPE_DESCRIPTOR_RESOLVER(x*) 
 
 BOOST_PP_SEQ_FOR_EACH_I(PRIMITIVE_TYPE_DESCRIPTOR_RESOLVER_FOR_EACH, data, BOOST_PP_TUPLE_TO_SEQ(BOOST_PP_TUPLE_SIZE(PRIMITIVE_TYPE), PRIMITIVE_TYPE))
 BOOST_PP_SEQ_FOR_EACH_I(PRIMITIVE_TYPE_POINTER_DESCRIPTOR_RESOLVER_FOR_EACH, data, BOOST_PP_TUPLE_TO_SEQ(BOOST_PP_TUPLE_SIZE(PRIMITIVE_TYPE), PRIMITIVE_TYPE))
