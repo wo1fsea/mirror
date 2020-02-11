@@ -1,10 +1,19 @@
 cmake_minimum_required(VERSION 3.0)
-project(cpp_mirror)
+project(mirror)
 
 set(CMAKE_CXX_STANDARD 17)
 
+if (WIN32)
+    set(BOOST_INCLUDE_PATH C:/boost_1_72_0)
+endif()
+
+if (APPLE)
+    set(BOOST_INCLUDE_PATH /usr/local/Cellar/boost/1.72.0/include/)
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g")
+endif()
+
 include_directories(mirror/headers/
-                   /usr/local/Cellar/boost/1.72.0/include/)
+                   ${BOOST_INCLUDE_PATH})
 
 file(GLOB PROJECT_HEADERS mirror/headers/*.hpp
                           mirror/headers/*.h)
@@ -27,4 +36,3 @@ set_target_properties(
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}
     )
 
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g")
