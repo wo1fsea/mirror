@@ -1,12 +1,14 @@
 #include <string>
+#include <cstdint>
 
 #define PRIMITIVE_TYPE (\
 	bool, \
-	char, signed char, unsigned char, \
-	wchar_t, \
+	char, unsigned char, \
 	short, unsigned short, \
-	int, unsigned, \
+	int, unsigned int, \
 	long, unsigned long, \
+	long long, unsigned long long, \
+	wchar_t, \
 	float, \
 	double, \
 	long double, \
