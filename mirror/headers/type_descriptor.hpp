@@ -6,6 +6,8 @@
 #include <boost/preprocessor.hpp>
 
 #include "primitive_type.hpp"
+#include "string_converter.hpp"
+
 
 class type_descriptor_base;
 
@@ -49,12 +51,23 @@ class type_descriptor_base
         const char *name;
         size_t size;
         member_descriptors members;
+
         type_descriptor_base(const char *type_name, size_t type_size, member_descriptors type_members={}):
         name(type_name), size(type_size), members(type_members){}
 
         virtual member_descriptor * get_member_descriptor(std::string member_name)=0;
+
+        virtual bool set_property(void *ptr, std::string member_name, std::any value)=0;
+        virtual std::any get_property(void *ptr, std::string member_name)=0;
+
         virtual bool set_value(void *ptr, std::any value)=0;
         virtual std::any get_value(void *ptr)=0;
+
+        virtual bool set_property_from_string(void *ptr, std::string member_name, std::string string_value)=0;
+        virtual std::string get_property_to_string(void *ptr, std::string member_name)=0;
+        
+        virtual bool set_value_from_string(void *ptr, std::string string_value)=0;
+        virtual std::string get_value_to_string(void *ptr)=0;
 };
 
 template<typename T>
@@ -125,8 +138,9 @@ class type_descriptor: public type_descriptor_base
                 *t_ptr = std::any_cast<T>(value2);
                 return true;
             }
-            catch (const std::bad_any_cast& e)
+            catch (const std::bad_any_cast& bace)
             {
+                bace.what();
                 return false;
             }
         }
@@ -135,6 +149,58 @@ class type_descriptor: public type_descriptor_base
         {
             std::any value = *static_cast<T*>(ptr);
             return value;   
+        }
+
+        bool set_property_from_string(void *ptr, std::string member_name, std::string string_value)
+        {
+            if(!ptr)
+            {
+                return false;
+            }
+
+            auto md = this->get_member_descriptor(member_name);
+
+            if(!md)
+            {
+                return false;
+            }
+
+            if(!md->type_descriptor_ptr)
+            {
+                return false;
+            }
+
+            return md->type_descriptor_ptr->set_value_from_string((char*)ptr + md->offset, string_value);
+        }
+
+        std::string get_property_to_string(void *ptr, std::string member_name)
+        {
+            std::string string_value;
+            if(!ptr)
+            {
+                return string_value;
+            }
+
+            auto md = this->get_member_descriptor(member_name);
+            if(!md || !md->type_descriptor_ptr)
+            {
+                return string_value;
+            }
+
+            return md->type_descriptor_ptr->get_value_to_string((char*)ptr + md->offset);
+        }
+        
+        bool set_value_from_string(void *ptr, std::string string_value)
+        {
+            auto t_ptr = static_cast<T*>(ptr);
+            return string_converter<T>::set_from_string(ptr ,string_value);
+        }
+
+        std::string get_value_to_string(void *ptr)
+        {
+            auto t_ptr = static_cast<T*>(ptr);
+            std::string string_value = string_converter<T>::to_string(*t_ptr);
+            return string_value;
         }
 };
 
@@ -178,6 +244,7 @@ REFLECTABLE_MEMBER(x)
 
 
 #define REFLECTABLE(class_name, members) \
+static_assert(std::is_default_constructible<class_name>::value, #class_name"is not default constructible");\
 template <> \
 struct type_descriptor_resolver<class_name>{ \
     using T = class_name; \
