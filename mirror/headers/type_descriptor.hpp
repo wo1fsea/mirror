@@ -48,12 +48,20 @@ class type_descriptor_base
 {
     public:
         using member_descriptors = std::vector<member_descriptor>;
+        using member_descriptors_map = std::map<std::string, member_descriptor>;
         const char *name;
         size_t size;
         member_descriptors members;
+        member_descriptors_map members_map;
 
         type_descriptor_base(const char *type_name, size_t type_size, member_descriptors type_members={}):
-        name(type_name), size(type_size), members(type_members){}
+        name(type_name), size(type_size), members(type_members)
+        {
+            for(auto member: members)
+            {
+                members_map.emplace(member.name, member);
+            }
+        }
 
         virtual member_descriptor * get_member_descriptor(std::string member_name)=0;
 
@@ -80,14 +88,8 @@ class type_descriptor: public type_descriptor_base
 
         member_descriptor * get_member_descriptor(std::string member_name)
         {
-            for(auto &member: members)
-            {
-                if(member_name == member.name)
-                {
-                    return &member;
-                }
-            }
-            return nullptr;
+            auto it = members_map.find(member_name);
+            return it == members_map.end() ? nullptr : &it->second;
         }
 
         bool set_property(void *ptr, std::string member_name, std::any value)
