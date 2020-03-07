@@ -32,8 +32,8 @@ class type_descriptor_t : public type_descriptor
 {
 public:
     using type = T;
-    type_descriptor_t(const char *type_name, size_t type_size) : type_descriptor(type_name, type_size) {}
-
+    using type_descriptor::type_descriptor;
+    
     bool set_value(void *ptr, std::any value)
     {
         try

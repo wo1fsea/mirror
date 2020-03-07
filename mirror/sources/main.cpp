@@ -71,6 +71,12 @@ REFLECTABLE_CLASS(
 		string_member,
 		stc))
 
+// std::unordered_map
+// std::unordered_multimap
+// std::unordered_set
+// std::vector
+// std::array
+
 int main()
 {
 	test_class tc;
@@ -93,6 +99,6 @@ int main()
 	}
 	std::cout << td->name << ", " << td->size << std::endl;
 	std::cout << "go " << std::endl;
-
 	return 0;
 }
+

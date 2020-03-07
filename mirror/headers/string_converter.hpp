@@ -13,7 +13,7 @@ namespace mirror
 template <typename T>
 struct type_descriptor_resolver;
 template <typename T>
-struct type_descriptor_for_class;
+class type_descriptor_for_class;
 
 // primitive type 2 string convert func
 // template <typename T>
@@ -127,51 +127,51 @@ struct string_converter
     }
 };
 
-#define NUMBER_STRING_CONVERTER(_typename, convert_func1, convert_func2)  \
-    template <>                                                           \
-    struct string_converter<_typename>                                    \
-    {                                                                     \
-        static bool set_from_string(void *ptr, std::string &string_value) \
-        {                                                                 \
-            _typename *ptr_t = static_cast<_typename *>(ptr);             \
-            _typename value = 0;                                          \
-            try                                                           \
-            {                                                             \
-                *ptr_t = convert_func1(string_value);                     \
-                return true;                                              \
-            }                                                             \
-            catch (std::invalid_argument iae)                             \
-            {                                                             \
-                runtime_error_handler(iae);                               \
-            }                                                             \
-            catch (std::out_of_range oore)                                \
-            {                                                             \
-                runtime_error_handler(oore);                              \
-            }                                                             \
-            return false;                                                 \
-        }                                                                 \
-                                                                          \
-        static _typename from_string(std::string &string_value)           \
-        {                                                                 \
-            try                                                           \
-            {                                                             \
-                return convert_func1(string_value);                       \
-            }                                                             \
-            catch (std::invalid_argument iae)                             \
-            {                                                             \
-                runtime_error_handler(iae);                               \
-            }                                                             \
-            catch (std::out_of_range oore)                                \
-            {                                                             \
-                runtime_error_handler(oore);                              \
-            }                                                             \
-            return 0;                                                     \
-        }                                                                 \
-                                                                          \
-        static std::string to_string(_typename &value)                    \
-        {                                                                 \
-            return convert_func2(value);                                  \
-        }                                                                 \
+#define NUMBER_STRING_CONVERTER(_typename, convert_func1, convert_func2)      \
+    template <>                                                               \
+    struct string_converter<_typename>                                        \
+    {                                                                         \
+        static bool set_from_string(void *ptr, std::string &string_value)     \
+        {                                                                     \
+            _typename *ptr_t = static_cast<_typename *>(ptr);                 \
+            _typename value = 0;                                              \
+            try                                                               \
+            {                                                                 \
+                *ptr_t = static_cast<_typename>(convert_func1(string_value)); \
+                return true;                                                  \
+            }                                                                 \
+            catch (std::invalid_argument iae)                                 \
+            {                                                                 \
+                runtime_error_handler(iae);                                   \
+            }                                                                 \
+            catch (std::out_of_range oore)                                    \
+            {                                                                 \
+                runtime_error_handler(oore);                                  \
+            }                                                                 \
+            return false;                                                     \
+        }                                                                     \
+                                                                              \
+        static _typename from_string(std::string &string_value)               \
+        {                                                                     \
+            try                                                               \
+            {                                                                 \
+                return static_cast<_typename>(convert_func1(string_value));   \
+            }                                                                 \
+            catch (std::invalid_argument iae)                                 \
+            {                                                                 \
+                runtime_error_handler(iae);                                   \
+            }                                                                 \
+            catch (std::out_of_range oore)                                    \
+            {                                                                 \
+                runtime_error_handler(oore);                                  \
+            }                                                                 \
+            return 0;                                                         \
+        }                                                                     \
+                                                                              \
+        static std::string to_string(_typename &value)                        \
+        {                                                                     \
+            return convert_func2(value);                                      \
+        }                                                                     \
     };
 
 NUMBER_STRING_CONVERTER(bool, std::stoi, std::to_string)
