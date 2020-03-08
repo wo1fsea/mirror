@@ -19,10 +19,12 @@ template <typename T>
 class type_descriptor_for_enum : public type_descriptor_t<T>
 {
 public:
-    static const int enumerator_unfound_value = std::numeric_limits<int>::max();
+    using underlying_type = typename std::underlying_type<T>::type;
+
+    static const underlying_type enumerator_unfound_value = std::numeric_limits<underlying_type>::max();
     static const char enumerator_unfound_string[];
-    std::map<std::string, int> enumerators_map;
-    std::map<int, std::string> enumerators_map_r;
+    std::map<std::string, underlying_type> enumerators_map;
+    std::map<underlying_type, std::string> enumerators_map_r;
 
     type_descriptor_for_enum(const char *type_name, size_t type_size, std::map<std::string, int> enum_enumerators_map = {}) : type_descriptor_t(type_name, type_size),
                                                                                                                               enumerators_map(enum_enumerators_map)
@@ -43,17 +45,17 @@ public:
         return keys;
     }
 
-    int get_enumerator_value(const std::string &enumerator_name)
+    underlying_type get_enumerator_value(const std::string &enumerator_name)
     {
         auto p = enumerators_map.find(enumerator_name);
         if (p == enumerators_map.end())
         {
             return enumerator_unfound_value;
         }
-        return (int)p->second;
+        return  static_cast<underlying_type>(p->second);
     }
 
-    std::string get_enumerator_name(int enumerator_value)
+    std::string get_enumerator_name(underlying_type enumerator_value)
     {
         auto p = enumerators_map_r.find(enumerator_value);
         if (p == enumerators_map_r.end())
