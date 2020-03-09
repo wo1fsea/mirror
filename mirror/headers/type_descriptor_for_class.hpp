@@ -50,20 +50,34 @@ struct member_descriptor
     const char *name;
     size_t offset;
     type_descriptor *type_descriptor_ptr;
+
+    member_descriptor::member_descriptor(const char *_name, size_t _offset, type_descriptor *_type_descriptor_ptr) : name(_name), offset(_offset), type_descriptor_ptr(_type_descriptor_ptr) {}
+};
+
+template <typename _parent_type>
+struct member_descriptor_t : public member_descriptor
+{
+public:
+    using member_descriptor::member_descriptor;
+
+    static type_descriptor *get_parent_type_descriptor_ptr()
+    {
+        return type_descriptor_resolver<_parent_type>::get();
+    }
 };
 
 template <typename T>
 class type_descriptor_for_class : public type_descriptor_t<T>
 {
 public:
-    using member_descriptors = std::vector<member_descriptor>;
-    using member_descriptors_map = std::map<std::string, member_descriptor>;
+    using member_descriptors = std::vector<member_descriptor_t<T>>;
+    using member_descriptors_map = std::map<std::string, member_descriptor_t<T>>;
 
     member_descriptors members;
     member_descriptors_map members_map;
 
     type_descriptor_for_class(const char *type_name, size_t type_size, member_descriptors type_members = {}) : type_descriptor_t(type_name, type_size),
-                                                                                                               members(type_members)
+                                                                                                                   members(type_members)
     {
         for (auto member : members)
         {
@@ -157,10 +171,10 @@ public:
 };
 
 #define REFLECTABLE_MEMBER(member_name) \
-    member_descriptor{                  \
+    member_descriptor_t<T>(             \
         #member_name,                   \
         offsetof(T, member_name),       \
-        type_descriptor_resolver<decltype(T::member_name)>::get()},
+        type_descriptor_resolver<decltype(T::member_name)>::get()),
 
 #define REFLECTABLE_MEMBER_FOR_EACH(r, data, i, x) \
     REFLECTABLE_MEMBER(x)
