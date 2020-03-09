@@ -9,5 +9,6 @@
 #include "type_descriptor_for_class.hpp"
 #include "type_descriptor_manager.hpp"
 #include "type_descriptor_resolver.hpp"
+#include "type_descriptor_for_function.hpp"
 
 #endif

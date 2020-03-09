@@ -58,7 +58,9 @@ REFLECTABLE_CLASS(
 		int_member,
 		float_member,
 		double_member,
-		string_member))
+		string_member
+	)
+	)
 
 REFLECTABLE_CLASS(
 	test_class,
@@ -77,28 +79,36 @@ REFLECTABLE_CLASS(
 // std::vector
 // std::array
 
+int a(int a, int b, int c) { return a + b + c; }
+
+
+
 int main()
 {
-	test_class tc;
-	auto td = type_descriptor_resolver<decltype(tc)>::get();
-	std::cout << td->set_property(&tc, "float_member", 1) << std::endl;
-	std::cout << std::any_cast<float>(td->get_property(&tc, "float_member")) << std::endl;
-	std::cout << "a " << tc.float_member << std::endl;
+	auto atd = type_descriptor_for_function<decltype(a)>("a", sizeof(&a));
+	std::cout<< atd.invoke(a, std::make_tuple(1,1,1)) << std::endl;
+	std::cout<< atd.invoke(a, {std::any(1), std::any(1),std::any(1)}) << std::endl;
 
-	std::cout << td->set_property_from_string(&tc, "float_member", "1.01") << std::endl;
-	std::cout << "a " << tc.float_member << std::endl;
+	// test_class tc;
+	// auto td = type_descriptor_resolver<decltype(tc)>::get();
+	// std::cout << td->set_property(&tc, "float_member", 1) << std::endl;
+	// std::cout << std::any_cast<float>(td->get_property(&tc, "float_member")) << std::endl;
+	// std::cout << "a " << tc.float_member << std::endl;
 
-	std::cout << td->set_property_from_string(&tc, "stc", "{\"int_member\":\"1000\"}") << std::endl;
-	std::cout << "i " << tc.stc.int_member << std::endl;
+	// std::cout << td->set_property_from_string(&tc, "float_member", "1.01") << std::endl;
+	// std::cout << "a " << tc.float_member << std::endl;
 
-	std::cout << td->get_value_to_string(&tc) << std::endl;
+	// std::cout << td->set_property_from_string(&tc, "stc", "{\"int_member\":\"1000\"}") << std::endl;
+	// std::cout << "i " << tc.stc.int_member << std::endl;
 
-	for (auto it : td->members)
-	{
-		std::cout << it.type_descriptor_ptr->name << ":" << td->get_property_to_string(&tc, it.name) << std::endl;
-	}
-	std::cout << td->name << ", " << td->size << std::endl;
-	std::cout << "go " << std::endl;
+	// std::cout << td->get_value_to_string(&tc) << std::endl;
+
+	// for (auto it : td->members)
+	// {
+	// 	std::cout << it.type_descriptor_ptr->name << ":" << td->get_property_to_string(&tc, it.name) << std::endl;
+	// }
+	// std::cout << td->name << ", " << td->size << std::endl;
+	// std::cout << "go " << std::endl;
 	return 0;
 }
 
