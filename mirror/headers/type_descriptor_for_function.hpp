@@ -10,7 +10,6 @@
 
 #include <boost/preprocessor/tuple/rem.hpp>
 
-
 namespace mirror
 {
 
@@ -33,9 +32,17 @@ public:
     template <int i>
     return_type invoke() {}
 
-    return_type invoke(std::function<signature> function, std::vector<std::any> args)
+    std::tuple<bool, std::any> invoke(std::function<signature> function, std::vector<std::any> args)
     {
-        return invoke_helper<return_type, signature, args_list, args_size>::invoke(function, args);
+        try
+        {
+            return {true, std::any(invoke_helper<return_type, signature, args_list, args_size>::invoke(function, args))};
+        }
+        catch (const std::bad_any_cast &bace)
+        {
+            runtime_error_handler(bace);
+            return {false, std::any()};
+        }
     }
 
     return_type invoke(std::function<signature> function, args_list args)
@@ -77,7 +84,7 @@ DEFINE_INVOKE_HELPER(2, (_ARGS0(0), _ARGS0(1)), (_ARGS1(0), _ARGS1(1)))
 DEFINE_INVOKE_HELPER(3, (_ARGS0(0), _ARGS0(1), _ARGS0(2)), (_ARGS1(0), _ARGS1(1), _ARGS1(2)))
 DEFINE_INVOKE_HELPER(4, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3)))
 DEFINE_INVOKE_HELPER(5, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4)))
-DEFINE_INVOKE_HELPER(6, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4), _ARGS0(5)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4),_ARGS1(5)))
+DEFINE_INVOKE_HELPER(6, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4), _ARGS0(5)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4), _ARGS1(5)))
 DEFINE_INVOKE_HELPER(7, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4), _ARGS0(5), _ARGS0(6)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4), _ARGS1(5), _ARGS1(6)))
 DEFINE_INVOKE_HELPER(8, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4), _ARGS0(5), _ARGS0(6), _ARGS0(7)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4), _ARGS1(5), _ARGS1(6), _ARGS1(7)))
 
@@ -106,6 +113,19 @@ DEFINE_INVOKE_HELPER(
     (std::get<0>(args), std::get<1>(args), std::get<2>(args)))
 
 */
+template <typename signature>
+struct type_descriptor_resolver;
+
+template <typename return_type, typename... args_types>
+struct type_descriptor_resolver<return_type(args_types...)> : public type_descriptor
+{
+    using T = return_type(args_types...);
+    static type_descriptor_for_function<T> *get()
+    {
+        static type_descriptor_for_function<T> td("function", sizeof(&a));
+        return &td;
+    }
+};
 
 } // namespace mirror
 
