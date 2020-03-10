@@ -79,15 +79,15 @@ REFLECTABLE_CLASS(
 // std::vector
 // std::array
 
-int a(int a, int b, int c) { return a + b + c; }
+int a(int a, int b, int c) { return a +b + c; }
 
 
 
 int main()
 {
 	auto atd = type_descriptor_for_function<decltype(a)>("a", sizeof(&a));
-	std::cout<< atd.invoke(a, std::make_tuple(1,1,1)) << std::endl;
-	std::cout<< atd.invoke(a, {std::any(1), std::any(1),std::any(1)}) << std::endl;
+	std::cout<< atd.invoke(a, std::make_tuple(1, 2, 3)) << std::endl;
+	std::cout<< atd.invoke(a, {std::any(1), std::any(2), std::any(3)}) << std::endl;
 
 	// test_class tc;
 	// auto td = type_descriptor_resolver<decltype(tc)>::get();
