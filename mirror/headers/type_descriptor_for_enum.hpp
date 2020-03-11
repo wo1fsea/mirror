@@ -66,6 +66,9 @@ public:
     }
 };
 
+} // namespace mirror
+
+
 #define REFLECTABLE_ENUM_ENUMERATORS(enumerator_name) \
     {#enumerator_name, enumerator_name},
 
@@ -75,12 +78,12 @@ public:
 #define REFLECTABLE_ENUM(enum_name, enumerators)                                                                                                               \
     static_assert(std::is_enum<enum_name>::value, #enum_name "is not an enum type.");                                                                          \
     template <>                                                                                                                                                \
-    struct type_descriptor_resolver<enum_name>                                                                                                                 \
+    struct mirror::type_descriptor_resolver<enum_name>                                                                                                                 \
     {                                                                                                                                                          \
         using T = enum_name;                                                                                                                                   \
-        static type_descriptor_for_enum<T> *get()                                                                                                              \
+        static mirror::type_descriptor_for_enum<T> *get()                                                                                                              \
         {                                                                                                                                                      \
-            static type_descriptor_for_enum<T> td(                                                                                                             \
+            static mirror::type_descriptor_for_enum<T> td(                                                                                                             \
                 #enum_name,                                                                                                                                    \
                 sizeof(T),                                                                                                                                     \
                 {BOOST_PP_SEQ_FOR_EACH_I(REFLECTABLE_ENUM_ENUMERATORS_FOR_EACH, data, BOOST_PP_TUPLE_TO_SEQ(BOOST_PP_TUPLE_SIZE(enumerators), enumerators))}); \
@@ -88,8 +91,8 @@ public:
         }                                                                                                                                                      \
     };                                                                                                                                                         \
     ENUM_CONVERTER(enum_name)                                                                                                                                  \
-    const char type_descriptor_for_enum<enum_name>::enumerator_unfound_string[] = {"enumerator_unfound"};
+    const char mirror::type_descriptor_for_enum<enum_name>::enumerator_unfound_string[] = {"enumerator_unfound"};
 
-} // namespace mirror
+
 
 #endif

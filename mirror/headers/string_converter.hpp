@@ -220,43 +220,43 @@ struct string_converter<std::string>
     }
 };
 
-#define ENUM_CONVERTER(_typename)                                                                                      \
-    template <>                                                                                                        \
-    struct string_converter<_typename>                                                                                 \
-    {                                                                                                                  \
-        static bool set_from_string(void *ptr, std::string &string_value)                                              \
-        {                                                                                                              \
-            _typename *ptr_t = static_cast<_typename *>(ptr);                                                          \
-            auto td = dynamic_cast<type_descriptor_for_enum<_typename> *>(type_descriptor_resolver<_typename>::get()); \
-            if (td)                                                                                                    \
-            {                                                                                                          \
-                *ptr_t = static_cast<_typename>(td->get_enumerator_value(string_value));                               \
-                return true;                                                                                           \
-            }                                                                                                          \
-            return false;                                                                                              \
-        }                                                                                                              \
-                                                                                                                       \
-        static _typename from_string(std::string &string_value)                                                        \
-        {                                                                                                              \
-            auto td = dynamic_cast<type_descriptor_for_enum<_typename> *>(type_descriptor_resolver<_typename>::get()); \
-            if (td)                                                                                                    \
-            {                                                                                                          \
-                return static_cast<_typename>(td->get_enumerator_value(string_value));                                 \
-            }                                                                                                          \
-            return static_cast<_typename>(td->enumerator_unfound_value);                                               \
-        }                                                                                                              \
-                                                                                                                       \
-        static std::string to_string(_typename &value)                                                                 \
-        {                                                                                                              \
-            auto td = dynamic_cast<type_descriptor_for_enum<_typename> *>(type_descriptor_resolver<_typename>::get()); \
-            if (td)                                                                                                    \
-            {                                                                                                          \
-                return td->get_enumerator_name((int)value);                                                            \
-            }                                                                                                          \
-            return td->enumerator_unfound_string;                                                                      \
-        }                                                                                                              \
-    };
-
 } // namespace mirror
+
+#define ENUM_CONVERTER(_typename)                                                                                                      \
+    template <>                                                                                                                        \
+    struct mirror::string_converter<_typename>                                                                                         \
+    {                                                                                                                                  \
+        static bool set_from_string(void *ptr, std::string &string_value)                                                              \
+        {                                                                                                                              \
+            _typename *ptr_t = static_cast<_typename *>(ptr);                                                                          \
+            auto td = dynamic_cast<mirror::type_descriptor_for_enum<_typename> *>(mirror::type_descriptor_resolver<_typename>::get()); \
+            if (td)                                                                                                                    \
+            {                                                                                                                          \
+                *ptr_t = static_cast<_typename>(td->get_enumerator_value(string_value));                                               \
+                return true;                                                                                                           \
+            }                                                                                                                          \
+            return false;                                                                                                              \
+        }                                                                                                                              \
+                                                                                                                                       \
+        static _typename from_string(std::string &string_value)                                                                        \
+        {                                                                                                                              \
+            auto td = dynamic_cast<mirror::type_descriptor_for_enum<_typename> *>(mirror::type_descriptor_resolver<_typename>::get()); \
+            if (td)                                                                                                                    \
+            {                                                                                                                          \
+                return static_cast<_typename>(td->get_enumerator_value(string_value));                                                 \
+            }                                                                                                                          \
+            return static_cast<_typename>(td->enumerator_unfound_value);                                                               \
+        }                                                                                                                              \
+                                                                                                                                       \
+        static std::string to_string(_typename &value)                                                                                 \
+        {                                                                                                                              \
+            auto td = dynamic_cast<type_descriptor_for_enum<_typename> *>(mirror::type_descriptor_resolver<_typename>::get());         \
+            if (td)                                                                                                                    \
+            {                                                                                                                          \
+                return td->get_enumerator_name((int)value);                                                                            \
+            }                                                                                                                          \
+            return td->enumerator_unfound_string;                                                                                      \
+        }                                                                                                                              \
+    };
 
 #endif

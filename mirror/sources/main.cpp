@@ -4,8 +4,6 @@
 
 #include "mirror.h"
 
-using namespace mirror;
-
 enum enum_t
 {
 	enum_0,
@@ -85,12 +83,12 @@ int a(int a, int b, int c) { return a +b + c; }
 
 int main()
 {
-	auto atd = type_descriptor_resolver<decltype(a)>::get();
+	auto atd = mirror::type_descriptor_resolver<decltype(a)>::get();
 	std::cout<< atd->invoke(a, std::make_tuple(1, 2, 3)) << std::endl;
 	std::cout<< std::get<0>(atd->invoke(a, {std::any(1), std::any(""), std::any(3)})) << std::endl;
 
 	test_class tc;
-	auto td = type_descriptor_resolver<decltype(tc)>::get();
+	auto td = mirror::type_descriptor_resolver<decltype(tc)>::get();
 	std::cout << td->set_property(&tc, "float_member", 1) << std::endl;
 	std::cout << std::any_cast<float>(td->get_property(&tc, "float_member")) << std::endl;
 	std::cout << "a " << tc.float_member << std::endl;

@@ -77,7 +77,7 @@ public:
     member_descriptors_map members_map;
 
     type_descriptor_for_class(const char *type_name, size_t type_size, member_descriptors type_members = {}) : type_descriptor_t(type_name, type_size),
-                                                                                                                   members(type_members)
+                                                                                                               members(type_members)
     {
         for (auto member : members)
         {
@@ -170,11 +170,17 @@ public:
     }
 };
 
+} // namespace mirror
+
+
+template <typename T>
+struct mirror::type_descriptor_resolver;
+
 #define REFLECTABLE_MEMBER(member_name) \
-    member_descriptor_t<T>(             \
+    mirror::member_descriptor_t<T>(     \
         #member_name,                   \
         offsetof(T, member_name),       \
-        type_descriptor_resolver<decltype(T::member_name)>::get()),
+        mirror::type_descriptor_resolver<decltype(T::member_name)>::get()),
 
 #define REFLECTABLE_MEMBER_FOR_EACH(r, data, i, x) \
     REFLECTABLE_MEMBER(x)
@@ -182,10 +188,10 @@ public:
 #define REFLECTABLE_CLASS(class_name, members)                                                                                               \
     static_assert(std::is_default_constructible<class_name>::value, #class_name "is not default constructible");                             \
     template <>                                                                                                                              \
-    struct type_descriptor_resolver<class_name>                                                                                              \
+    struct mirror::type_descriptor_resolver<class_name>                                                                                      \
     {                                                                                                                                        \
         using T = class_name;                                                                                                                \
-        static type_descriptor_for_class<T> *get()                                                                                           \
+        static mirror::type_descriptor_for_class<T> *get()                                                                                   \
         {                                                                                                                                    \
             static type_descriptor_for_class<T> td(                                                                                          \
                 #class_name,                                                                                                                 \
@@ -194,6 +200,5 @@ public:
             return &td;                                                                                                                      \
         }                                                                                                                                    \
     };
-} // namespace mirror
 
 #endif
