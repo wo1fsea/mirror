@@ -20,11 +20,13 @@ public:
 
     type_descriptor(const char *type_name, size_t type_size) : name(type_name), size(type_size) {}
 
-    virtual bool set_value(void *ptr, std::any value) = 0;
-    virtual std::any get_value(void *ptr) = 0;
 
-    virtual bool set_value_from_string(void *ptr, std::string string_value) = 0;
-    virtual std::string get_value_to_string(void *ptr) = 0;
+
+    virtual bool set_value(void* ptr, std::any value) { return false; }
+    virtual std::any get_value(void* ptr) { return std::any(); }
+
+    virtual bool set_value_from_string(void* ptr, std::string string_value) { return false; }
+    virtual std::string get_value_to_string(void* ptr) { return ""; }
 };
 
 template <typename T>

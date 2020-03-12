@@ -38,7 +38,10 @@ public:
 	test_sub_class stc;
 
 	// test_class(){}
-	int a(int a, int b, int c, int d) { return a + b + c + d; }
+	int a(int a, int b, int c) { 
+		return a + b + c;
+	}
+	static int b(int a, int b, int c) { return a + b + c; }
 };
 
 REFLECTABLE_ENUM(
@@ -47,48 +50,62 @@ REFLECTABLE_ENUM(
 		enum_t::enum_0,
 		enum_t::enum_1))
 
-REFLECTABLE_CLASS(
-	test_sub_class,
-	(
-		enum_member,
-		bool_member,
-		char_member,
-		int_member,
-		float_member,
-		double_member,
-		string_member
+	REFLECTABLE_CLASS(
+		test_sub_class,
+		(
+			enum_member,
+			bool_member,
+			char_member,
+			int_member,
+			float_member,
+			double_member,
+			string_member
+			)
 	)
+
+	REFLECTABLE_CLASS_WITH_METHOD(
+		test_class,
+		(
+			bool_member,
+			char_member,
+			int_member,
+			float_member,
+			double_member,
+			string_member,
+			stc),
+			(a, b)
 	)
 
-REFLECTABLE_CLASS(
-	test_class,
-	(
-		bool_member,
-		char_member,
-		int_member,
-		float_member,
-		double_member,
-		string_member,
-		stc))
+	// std::unordered_map
+	// std::unordered_multimap
+	// std::unordered_set
+	// std::vector
+	// std::array
 
-// std::unordered_map
-// std::unordered_multimap
-// std::unordered_set
-// std::vector
-// std::array
-
-int a(int a, int b, int c) { return a +b + c; }
+	int a(int a, int b, int c) { return a + b + c; }
 
 
 
 int main()
 {
-	auto atd = mirror::type_descriptor_resolver<decltype(a)>::get();
-	std::cout<< atd->invoke(a, std::make_tuple(1, 2, 3)) << std::endl;
-	std::cout<< std::get<0>(atd->invoke(a, {std::any(1), std::any(""), std::any(3)})) << std::endl;
-
 	test_class tc;
+
+	auto f = mirror::type_descriptor_resolver<decltype(&test_class::a)>::get();
+	std::cout << std::any_cast<int>(std::get<1>(f->invoke(&tc, &test_class::a, { std::any(1), std::any(2), std::any(3) })));
+	//auto q =  mirror::method_descriptor("a");
+	//q.type_descriptor_ptr = f; 
+	/*
+	auto tttt = std::mem_fn(&test_class::a);
+	std::cout << tttt(tc, 1, 2, 3, 4) << std::endl;
+	
+	auto atd = mirror::type_descriptor_resolver<decltype(&test_class::b)>::get();
+	std::cout << atd->invoke(a, std::make_tuple(1, 2, 3)) << std::endl;
+	std::cout << std::get<0>(atd->invoke(a, { std::any(1), std::any(2), std::any(3) })) << std::endl;
+
 	auto td = mirror::type_descriptor_resolver<decltype(tc)>::get();
+	std::function<int(int, int, int, int)> ff;
+	//ff(1, 2, 3, 4);
+
 	std::cout << td->set_property(&tc, "float_member", 1) << std::endl;
 	std::cout << std::any_cast<float>(td->get_property(&tc, "float_member")) << std::endl;
 	std::cout << "a " << tc.float_member << std::endl;
@@ -107,6 +124,7 @@ int main()
 	}
 	std::cout << td->name << ", " << td->size << std::endl;
 	std::cout << "go " << std::endl;
+	*/
 	return 0;
 }
 
