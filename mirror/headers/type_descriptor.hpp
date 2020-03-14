@@ -20,7 +20,15 @@ public:
 
     type_descriptor(const char *type_name, size_t type_size) : name(type_name), size(type_size) {}
 
+	virtual std::tuple<bool, std::any> invoke(std::any function_ptr, std::vector<std::any> args)
+	{
+		return {false, std::any()};
+	}
 
+    virtual std::tuple<bool, std::any> invoke(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args)
+	{
+		return {false, std::any()};
+	}
 
     virtual bool set_value(void* ptr, std::any value) { return false; }
     virtual std::any get_value(void* ptr) { return std::any(); }

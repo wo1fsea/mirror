@@ -109,16 +109,22 @@ namespace mirror
 			{
 				members_map.emplace(member.name, member);
 			}
-			//for (auto method : methods)
-			//{
-			//	methods_map.emplace(method.name, method);
-			//}
+			for (auto method : methods)
+			{
+				methods_map.emplace(method.name, method);
+			}
 		}
 
 		member_descriptor* get_member_descriptor(std::string member_name)
 		{
 			auto it = members_map.find(member_name);
 			return it == members_map.end() ? nullptr : &it->second;
+		}
+
+		method_descriptor* get_method_descriptor(std::string method_name)
+		{
+			auto it = methods_map.find(method_name);
+			return it == methods_map.end() ? nullptr : &it->second;
 		}
 
 		bool set_property(void* ptr, std::string member_name, std::any value)
@@ -197,6 +203,23 @@ namespace mirror
 			}
 
 			return md->type_descriptor_ptr->get_value_to_string((char*)ptr + md->offset);
+		}
+
+		std::tuple<bool,std::any> invoke_method(void *ptr, std::string method_name, std::vector<std::any> args)
+		{
+			// if (!ptr)
+			// {
+			// 	return {false, std::any()};
+			// }
+
+			// auto md = this->get_method_descriptor(method_name);
+			// if (!md || !md->type_descriptor_ptr)
+			// {
+			// 	return {false, std::any()};
+			// }
+			// auto ptr_t = static_cast<T*>(ptr); 
+			return {false, std::any()};
+			//return md->type_descriptor_ptr->invoke(ptr_t, method_name, args);
 		}
 	};
 
