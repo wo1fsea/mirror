@@ -38,11 +38,12 @@ public:
 	test_sub_class stc;
 
 	// test_class(){}
-	int a(int a, int b, int c) { 
+	int a(int a, int b, int c)
+	{
 		return a + b + c;
 	}
-	int no_args(){return 1;}
-	void no_return(){std::cout<<"AAAA"<<std::endl;}
+	int no_args() { return 1; }
+	void no_return() { std::cout << "AAAA" << std::endl; }
 	static int b(int a, int b, int c) { return a + b + c; }
 };
 
@@ -52,41 +53,36 @@ REFLECTABLE_ENUM(
 		enum_t::enum_0,
 		enum_t::enum_1))
 
-	REFLECTABLE_CLASS(
-		test_sub_class,
-		(
-			enum_member,
-			bool_member,
-			char_member,
-			int_member,
-			float_member,
-			double_member,
-			string_member
-			)
-	)
+REFLECTABLE_CLASS(
+	test_sub_class,
+	(
+		enum_member,
+		bool_member,
+		char_member,
+		int_member,
+		float_member,
+		double_member,
+		string_member))
 
-	REFLECTABLE_CLASS_WITH_METHOD(
-		test_class,
-		(
-			bool_member,
-			char_member,
-			int_member,
-			float_member,
-			double_member,
-			string_member,
-			stc),
-			(a, b)
-	)
+REFLECTABLE_CLASS_WITH_METHOD(
+	test_class,
+	(
+		bool_member,
+		char_member,
+		int_member,
+		float_member,
+		double_member,
+		string_member,
+		stc),
+	(a, b))
 
-	// std::unordered_map
-	// std::unordered_multimap
-	// std::unordered_set
-	// std::vector
-	// std::array
+// std::unordered_map
+// std::unordered_multimap
+// std::unordered_set
+// std::vector
+// std::array
 
-	int a(int a, int b, int c) { return a + b + c; }
-
-
+int a(int a, int b, int c) { return a + b + c; }
 
 int main()
 {
@@ -95,16 +91,16 @@ int main()
 	auto f = mirror::type_descriptor_resolver<decltype(&test_class::a)>::get();
 	auto f2 = mirror::type_descriptor_resolver<decltype(&test_class::no_args)>::get();
 	auto f3 = mirror::type_descriptor_resolver<decltype(&test_class::no_return)>::get();
-	std::cout << std::any_cast<int>(std::get<1>(f->invoke(&tc, &test_class::a, { std::any(1), std::any(2), std::any(3) }))) << std::endl;
+	std::cout << std::any_cast<int>(std::get<1>(f->invoke(&tc, &test_class::a, {std::any(1), std::any(2), std::any(3)}))) << std::endl;
 
-	std::cout << f->call(&tc, &test_class::a, std::make_tuple(1,2,3) ) << std::endl;
-	std::cout << f2->call(&tc, &test_class::no_args, std::make_tuple() ) << std::endl;
-	f3->call(&tc, &test_class::no_return, std::make_tuple() );
-	
+	std::cout << f->call(&tc, &test_class::a, std::make_tuple(1, 2, 3)) << std::endl;
+	std::cout << f2->call(&tc, &test_class::no_args, std::make_tuple()) << std::endl;
+	f3->call(&tc, &test_class::no_return, std::make_tuple());
+
 	auto td = mirror::type_descriptor_resolver<decltype(tc)>::get();
 
 	auto atd = mirror::type_descriptor_resolver<decltype(&test_class::b)>::get();
-	std::cout << std::get<0>(atd->invoke(a, { std::any(1), std::any(2), std::any(3) })) << std::endl;
+	std::cout << std::get<0>(atd->invoke(a, {std::any(1), std::any(2), std::any(3)})) << std::endl;
 
 	std::function<int(int, int, int, int)> ff;
 
@@ -129,7 +125,6 @@ int main()
 	}
 	std::cout << td->name << ", " << td->size << std::endl;
 	std::cout << "go " << std::endl;
-	
+
 	return 0;
 }
-

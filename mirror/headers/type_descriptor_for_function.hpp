@@ -9,6 +9,7 @@
 #include <functional>
 
 #include <boost/preprocessor/tuple/rem.hpp>
+#include <boost/preprocessor/repetition/repeat.hpp>
 
 namespace mirror
 {
@@ -29,7 +30,7 @@ template <typename return_type, typename... args_types>
 class type_descriptor_for_function<return_type(args_types...)> : public type_descriptor_for_function_impl<return_type, args_types...>, public type_descriptor
 {
 public:
-	using type_descriptor::type_descriptor;  
+	using type_descriptor::type_descriptor;
 	virtual std::tuple<bool, std::any> invoke(std::any function_ptr, std::vector<std::any> args)
 	{
 		return type_descriptor_for_function_impl::invoke(function_ptr, args);
@@ -56,7 +57,6 @@ public:
 	{
 		return type_descriptor_for_method_impl::invoke(instance_ptr, function_ptr, args);
 	}
-	
 };
 
 template <typename return_type, typename... args_types>
@@ -123,7 +123,6 @@ public:
 	}
 };
 
-
 template <typename instance_type, typename return_type, typename... args_types>
 class type_descriptor_for_method_impl
 {
@@ -140,7 +139,7 @@ public:
 		try
 		{
 			auto function_ptr2 = std::any_cast<signature>(function_ptr);
-			auto instance_ptr2 = std::any_cast<instance_type*>(instance_ptr);
+			auto instance_ptr2 = std::any_cast<instance_type *>(instance_ptr);
 			return {true, std::any(method_invoke_helper<instance_type, return_type, signature, args_list, args_size>::invoke(instance_ptr2, function_ptr2, args))};
 		}
 		catch (const std::bad_any_cast &bace)
@@ -150,7 +149,7 @@ public:
 		}
 	}
 
-	return_type call(instance_type* instance_ptr, signature function_ptr, args_list args)
+	return_type call(instance_type *instance_ptr, signature function_ptr, args_list args)
 	{
 		return method_invoke_helper<instance_type, return_type, signature, args_list, args_size>::call(instance_ptr, function_ptr, args);
 	}
@@ -173,7 +172,7 @@ public:
 		try
 		{
 			auto function_ptr2 = std::any_cast<signature>(function_ptr);
-			auto instance_ptr2 = std::any_cast<instance_type*>(instance_ptr);
+			auto instance_ptr2 = std::any_cast<instance_type *>(instance_ptr);
 			method_invoke_helper<instance_type, return_type, signature, args_list, args_size>::invoke(instance_ptr2, function_ptr2, args);
 			return {true, std::any()};
 		}
@@ -184,16 +183,25 @@ public:
 		}
 	}
 
-	return_type call(instance_type* instance_ptr, signature function_ptr, args_list args)
+	return_type call(instance_type *instance_ptr, signature function_ptr, args_list args)
 	{
 		return method_invoke_helper<instance_type, return_type, signature, args_list, args_size>::call(instance_ptr, function_ptr, args);
 	}
 };
 
+#define _ARGS0(idx)                                  \
+	BOOST_PP_IF(idx, BOOST_PP_COMMA, BOOST_PP_EMPTY) \
+	() std::any_cast<i_args_type<idx>>(args[idx])
+#define _ARGS1(idx)                                  \
+	BOOST_PP_IF(idx, BOOST_PP_COMMA, BOOST_PP_EMPTY) \
+	() std::get<idx>(args)
+
+#define _ARGS_LIST0(n, idx, text) _ARGS0(idx)
+#define _ARGS_LIST1(n, idx, text) _ARGS1(idx)
+
 template <typename return_type, typename signature, typename args_list_type, int args>
 struct function_invoke_helper;
-
-#define DEFINE_FUNCTION_INVOKE_HELPER(args_size, args_list0, args_list1)                         \
+#define DEFINE_FUNCTION_INVOKE_HELPER(args_size)                                                 \
 	template <typename return_type, typename signature, typename args_list_type>                 \
 	struct function_invoke_helper<return_type, signature, args_list_type, args_size>             \
 	{                                                                                            \
@@ -202,92 +210,50 @@ struct function_invoke_helper;
                                                                                                  \
 		static return_type invoke(std::function<signature> function, std::vector<std::any> args) \
 		{                                                                                        \
-			return function(BOOST_PP_TUPLE_REM(args_size) args_list0);                           \
+			return function(BOOST_PP_REPEAT(args_size, _ARGS_LIST0, text));                      \
 		}                                                                                        \
                                                                                                  \
-		static return_type call(std::function<signature> function, args_list_type args)        \
+		static return_type call(std::function<signature> function, args_list_type args)          \
 		{                                                                                        \
-			return function(BOOST_PP_TUPLE_REM(args_size) args_list1);                           \
+			return function(BOOST_PP_REPEAT(args_size, _ARGS_LIST1, text));                      \
 		}                                                                                        \
 	};
-
-#define COMM
-#define BLANK
 
 template <typename instance_type, typename return_type, typename signature, typename args_list_type, int args>
 struct method_invoke_helper;
 
-#define DEFINE_METHOD_INVOKE_HELPER(args_size, args_list0, args_list1)                                             \
-	template <typename instance_type, typename return_type, typename signature, typename args_list_type>           \
-	struct method_invoke_helper<instance_type, return_type, signature, args_list_type, args_size>                  \
-	{                                                                                                              \
-		template <int i>                                                                                           \
-		using i_args_type = typename std::tuple_element<i, args_list_type>::type;                                  \
-                                                                                                                   \
-		static return_type invoke(instance_type *instance_ptr, signature function_ptr, std::vector<std::any> args) \
-		{                                                                                                          \
-			auto function = std::mem_fn(function_ptr);                                                             \
-			return function(instance_ptr BOOST_PP_IF(args_size, BOOST_PP_COMMA, BOOST_PP_EMPTY)() BOOST_PP_TUPLE_REM(args_size) args_list0);                               \
-		}                                                                                                          \
-                                                                                                                   \
-		static return_type call(instance_type *instance_ptr, signature function_ptr, args_list_type args)        \
-		{                                                                                                          \
-			auto function = std::mem_fn(function_ptr);                                                             \
-			return function(instance_ptr BOOST_PP_IF(args_size, BOOST_PP_COMMA, BOOST_PP_EMPTY)() BOOST_PP_TUPLE_REM(args_size) args_list1);                               \
-		}                                                                                                          \
+#define DEFINE_METHOD_INVOKE_HELPER(args_size)                                                                                                    \
+	template <typename instance_type, typename return_type, typename signature, typename args_list_type>                                          \
+	struct method_invoke_helper<instance_type, return_type, signature, args_list_type, args_size>                                                 \
+	{                                                                                                                                             \
+		template <int i>                                                                                                                          \
+		using i_args_type = typename std::tuple_element<i, args_list_type>::type;                                                                 \
+                                                                                                                                                  \
+		static return_type invoke(instance_type *instance_ptr, signature function_ptr, std::vector<std::any> args)                                \
+		{                                                                                                                                         \
+			auto function = std::mem_fn(function_ptr);                                                                                            \
+			return function(instance_ptr BOOST_PP_IF(args_size, BOOST_PP_COMMA, BOOST_PP_EMPTY)() BOOST_PP_REPEAT(args_size, _ARGS_LIST0, text)); \
+		}                                                                                                                                         \
+                                                                                                                                                  \
+		static return_type call(instance_type *instance_ptr, signature function_ptr, args_list_type args)                                         \
+		{                                                                                                                                         \
+			auto function = std::mem_fn(function_ptr);                                                                                            \
+			return function(instance_ptr BOOST_PP_IF(args_size, BOOST_PP_COMMA, BOOST_PP_EMPTY)() BOOST_PP_REPEAT(args_size, _ARGS_LIST1, text)); \
+		}                                                                                                                                         \
 	};
 
-#define _ARGS0(idx) std::any_cast<i_args_type<idx>>(args[idx])
-#define _ARGS1(idx) std::get<idx>(args)
-
-DEFINE_FUNCTION_INVOKE_HELPER(0, (), ())
-DEFINE_FUNCTION_INVOKE_HELPER(1, (_ARGS0(0)), (_ARGS1(0)))
-DEFINE_FUNCTION_INVOKE_HELPER(2, (_ARGS0(0), _ARGS0(1)), (_ARGS1(0), _ARGS1(1)))
-DEFINE_FUNCTION_INVOKE_HELPER(3, (_ARGS0(0), _ARGS0(1), _ARGS0(2)), (_ARGS1(0), _ARGS1(1), _ARGS1(2)))
-DEFINE_FUNCTION_INVOKE_HELPER(4, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3)))
-DEFINE_FUNCTION_INVOKE_HELPER(5, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4)))
-DEFINE_FUNCTION_INVOKE_HELPER(6, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4), _ARGS0(5)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4), _ARGS1(5)))
-DEFINE_FUNCTION_INVOKE_HELPER(7, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4), _ARGS0(5), _ARGS0(6)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4), _ARGS1(5), _ARGS1(6)))
-DEFINE_FUNCTION_INVOKE_HELPER(8, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4), _ARGS0(5), _ARGS0(6), _ARGS0(7)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4), _ARGS1(5), _ARGS1(6), _ARGS1(7)))
-
-DEFINE_METHOD_INVOKE_HELPER(0, (), ())
-DEFINE_METHOD_INVOKE_HELPER(1, (_ARGS0(0)), (_ARGS1(0)))
-DEFINE_METHOD_INVOKE_HELPER(2, (_ARGS0(0), _ARGS0(1)), (_ARGS1(0), _ARGS1(1)))
-DEFINE_METHOD_INVOKE_HELPER(3, (_ARGS0(0), _ARGS0(1), _ARGS0(2)), (_ARGS1(0), _ARGS1(1), _ARGS1(2)))
-DEFINE_METHOD_INVOKE_HELPER(4, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3)))
-DEFINE_METHOD_INVOKE_HELPER(5, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4)))
-DEFINE_METHOD_INVOKE_HELPER(6, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4), _ARGS0(5)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4), _ARGS1(5)))
-DEFINE_METHOD_INVOKE_HELPER(7, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4), _ARGS0(5), _ARGS0(6)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4), _ARGS1(5), _ARGS1(6)))
-DEFINE_METHOD_INVOKE_HELPER(8, (_ARGS0(0), _ARGS0(1), _ARGS0(2), _ARGS0(3), _ARGS0(4), _ARGS0(5), _ARGS0(6), _ARGS0(7)), (_ARGS1(0), _ARGS1(1), _ARGS1(2), _ARGS1(3), _ARGS1(4), _ARGS1(5), _ARGS1(6), _ARGS1(7)))
+#define DEFINE_FUNCTION_INVOK_HELPER_REPEAT(n, idx, text) DEFINE_FUNCTION_INVOKE_HELPER(idx)
+BOOST_PP_REPEAT(128, DEFINE_FUNCTION_INVOK_HELPER_REPEAT, text)
+#define DEFINE_METHOD_INVOK_HELPER_REPEAT(n, idx, text) DEFINE_METHOD_INVOKE_HELPER(idx)
+BOOST_PP_REPEAT(128, DEFINE_METHOD_INVOK_HELPER_REPEAT, text)
 
 #undef _ARGS0
 #undef _ARGS1
+#undef _ARGS_LIST0
+#undef _ARGS_LIST1
+#undef DEFINE_FUNCTION_INVOK_HELPER_REPEAT
+#undef DEFINE_METHOD_INVOK_HELPER_REPEAT
 
-/*
-		#include <boost/preprocessor/repetition/repeat.hpp>
-		#include <boost/preprocessor/control/if.hpp>
-		#include <boost/preprocessor/array/push_back.hpp>
-		#include <boost/preprocessor/array/size.hpp>
-
-		#define MAEK_INVOKER_HELPER_ARGS0(idx) std::any_cast<i_args_type<idx>>(args[idx])
-		#define MAEK_INVOKER_HELPER_ARGS1(idx) std::get<idx>(args)
-
-		#define INVOKER_HELPER_ARGS_ARRAY0 (0, ())
-		#define INVOKER_HELPER_ARGS_ARRAY1 (0, ())
-
-		DEFINE_INVOKE_HELPER(
-			3,
-			BOOST_PP_ARRAY_DATA(
-				BOOST_PP_ARRAY_PUSH_BACK(
-					BOOST_PP_ARRAY_PUSH_BACK(
-						BOOST_PP_ARRAY_PUSH_BACK(
-							INVOKER_HELPER_ARGS_ARRAY0,
-							MAEK_INVOKER_HELPER_ARGS0(0)),
-						MAEK_INVOKER_HELPER_ARGS0(1)),
-					MAEK_INVOKER_HELPER_ARGS0(2))),
-			(std::get<0>(args), std::get<1>(args), std::get<2>(args)))
-
-		*/
 template <typename signature>
 struct type_descriptor_resolver;
 

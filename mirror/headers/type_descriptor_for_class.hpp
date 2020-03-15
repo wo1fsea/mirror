@@ -91,7 +91,7 @@ namespace mirror
 	{
 	public:
 		using member_descriptors = std::vector<member_descriptor_t<T>>;
-		using method_descriptors = std::vector<method_descriptor>;
+		using method_descriptors = std::vector<method_descriptor_t<T>>;
 
 		using member_descriptors_map = std::map<std::string, member_descriptor_t<T>>;
 		using method_descriptors_map = std::map<std::string, method_descriptor_t<T>>;
@@ -121,11 +121,11 @@ namespace mirror
 			return it == members_map.end() ? nullptr : &it->second;
 		}
 
-		method_descriptor* get_method_descriptor(std::string method_name)
-		{
-			auto it = methods_map.find(method_name);
-			return it == methods_map.end() ? nullptr : &it->second;
-		}
+		// method_descriptor* get_method_descriptor(std::string method_name)
+		// {
+		// 	auto it = methods_map.find(method_name);
+		// 	return it == methods_map.end() ? nullptr : &it->second;
+		// }
 
 		bool set_property(void* ptr, std::string member_name, std::any value)
 		{
@@ -239,7 +239,7 @@ struct mirror::type_descriptor_resolver;
     REFLECTABLE_MEMBER(x)
 
 #define REFLECTABLE_METHOD(method_name) \
-    mirror::method_descriptor(     \
+    mirror::method_descriptor_t<T>(     \
         #method_name,                   \
         mirror::type_descriptor_resolver<decltype(&T::method_name)>::get()),
 
