@@ -29,6 +29,7 @@ struct type_descriptor_resolver
 {
     static type_descriptor *get()
     {
+        // static_assert(false, "unsupported type.");
         return nullptr;
     }
 };
