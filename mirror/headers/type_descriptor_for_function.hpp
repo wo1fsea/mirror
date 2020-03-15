@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <functional>
+#include <type_traits>
 
 #include <boost/preprocessor/tuple/rem.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
@@ -62,15 +63,11 @@ public:
 template <typename return_type, typename... args_types>
 class type_descriptor_for_function_impl
 {
-public:
-	using signature = return_type(args_types...);
-	using args_list = std::tuple<args_types...>;
-	template <int i>
-	using i_args_type = typename std::tuple_element<i, args_list>::type;
+private:
+	template<bool has_no_return> std::tuple<bool, std::any> _invoke(std::any function_ptr, std::vector<std::any> args);
 
-	static constexpr size_t args_size = std::tuple_size_v<args_list>;
-
-	std::tuple<bool, std::any> invoke(std::any function_ptr, std::vector<std::any> args)
+	template<>
+	std::tuple<bool, std::any> _invoke<false>(std::any function_ptr, std::vector<std::any> args)
 	{
 		try
 		{
@@ -84,25 +81,8 @@ public:
 		}
 	}
 
-	return_type call(std::function<signature> function, args_list args)
-	{
-		return function_invoke_helper<return_type, signature, args_list, args_size>::call(function, args);
-	}
-};
-
-template <typename... args_types>
-class type_descriptor_for_function_impl<void, args_types...>
-{
-public:
-	using return_type = void;
-	using signature = return_type(args_types...);
-	using args_list = std::tuple<args_types...>;
-	template <int i>
-	using i_args_type = typename std::tuple_element<i, args_list>::type;
-
-	static constexpr size_t args_size = std::tuple_size_v<args_list>;
-
-	std::tuple<bool, std::any> invoke(std::any function_ptr, std::vector<std::any> args)
+	template<>
+	std::tuple<bool, std::any> _invoke<true>(std::any function_ptr, std::vector<std::any> args)
 	{
 		try
 		{
@@ -117,24 +97,38 @@ public:
 		}
 	}
 
+
+
+public:
+	using signature = return_type(args_types...);
+	using args_list = std::tuple<args_types...>;
+	template <int i>
+	using i_args_type = typename std::tuple_element<i, args_list>::type;
+
+	static constexpr size_t args_size = std::tuple_size_v<args_list>;
+	static constexpr bool has_no_return = std::is_void<return_type>::value;
+
+	std::tuple<bool, std::any> invoke(std::any function_ptr, std::vector<std::any> args)
+	{
+		return _invoke<has_no_return>(function_ptr, args);
+	}
+
 	return_type call(std::function<signature> function, args_list args)
 	{
 		return function_invoke_helper<return_type, signature, args_list, args_size>::call(function, args);
 	}
 };
 
+
 template <typename instance_type, typename return_type, typename... args_types>
 class type_descriptor_for_method_impl
 {
-public:
-	using signature = return_type (instance_type::*)(args_types...);
-	using args_list = std::tuple<args_types...>;
-	template <int i>
-	using i_args_type = typename std::tuple_element<i, args_list>::type;
 
-	static constexpr size_t args_size = std::tuple_size_v<args_list>;
+private:
+	template <bool has_no_return> std::tuple<bool, std::any> _invoke(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args);
 
-	std::tuple<bool, std::any> invoke(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args)
+	template <>
+	std::tuple<bool, std::any> _invoke<false>(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args)
 	{
 		try
 		{
@@ -149,25 +143,8 @@ public:
 		}
 	}
 
-	return_type call(instance_type *instance_ptr, signature function_ptr, args_list args)
-	{
-		return method_invoke_helper<instance_type, return_type, signature, args_list, args_size>::call(instance_ptr, function_ptr, args);
-	}
-};
-
-template <typename instance_type, typename... args_types>
-class type_descriptor_for_method_impl<instance_type, void, args_types...>
-{
-public:
-	using return_type = void;
-	using signature = return_type (instance_type::*)(args_types...);
-	using args_list = std::tuple<args_types...>;
-	template <int i>
-	using i_args_type = typename std::tuple_element<i, args_list>::type;
-
-	static constexpr size_t args_size = std::tuple_size_v<args_list>;
-
-	std::tuple<bool, std::any> invoke(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args)
+	template <>
+	std::tuple<bool, std::any> _invoke<true>(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args)
 	{
 		try
 		{
@@ -181,6 +158,20 @@ public:
 			runtime_error_handler(bace);
 			return {false, std::any()};
 		}
+	}
+
+public:
+	using signature = return_type (instance_type::*)(args_types...);
+	using args_list = std::tuple<args_types...>;
+	template <int i>
+	using i_args_type = typename std::tuple_element<i, args_list>::type;
+
+	static constexpr size_t args_size = std::tuple_size_v<args_list>;
+	static constexpr bool has_no_return = std::is_void<return_type>::value;
+
+	std::tuple<bool, std::any> invoke(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args)
+	{
+		return _invoke<has_no_return>(instance_ptr, function_ptr, args);
 	}
 
 	return_type call(instance_type *instance_ptr, signature function_ptr, args_list args)

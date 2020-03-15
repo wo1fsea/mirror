@@ -82,18 +82,18 @@ REFLECTABLE_CLASS_WITH_METHOD(
 // std::vector
 // std::array
 
-int a(int a, int b, int c) { return a + b + c; }
+int a(int a, int b, int c) noexcept { return a + b + c; }
 
 int main()
 {
 	test_class tc;
 
-	auto f = mirror::type_descriptor_resolver<decltype(&test_class::a)>::get();
+	auto f = mirror::type_descriptor_resolver<decltype(&a)>::get();
 	auto f2 = mirror::type_descriptor_resolver<decltype(&test_class::no_args)>::get();
 	auto f3 = mirror::type_descriptor_resolver<decltype(&test_class::no_return)>::get();
 	std::cout << std::any_cast<int>(std::get<1>(f->invoke(&tc, &test_class::a, {std::any(1), std::any(2), std::any(3)}))) << std::endl;
 
-	std::cout << f->call(&tc, &test_class::a, std::make_tuple(1, 2, 3)) << std::endl;
+	std::cout << std::any_cast<int>(std::get<1>(f->invoke(&tc, &test_class::a, {std::any(1), std::any(2), std::any(3)}))) << std::endl;
 	std::cout << f2->call(&tc, &test_class::no_args, std::make_tuple()) << std::endl;
 	f3->call(&tc, &test_class::no_return, std::make_tuple());
 
