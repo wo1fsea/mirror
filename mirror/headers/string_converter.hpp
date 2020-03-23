@@ -55,10 +55,10 @@ struct string_converter
 
                 for (auto it : td->members)
                 {
-                    boost::optional<std::string> member_string_value = pt.get_optional<std::string>(it.name);
+                    boost::optional<std::string> member_string_value = pt.get_optional<std::string>(it->name);
                     if (member_string_value.has_value())
                     {
-                        td->set_property_from_string(ptr, it.name, member_string_value.get());
+                        td->set_property_from_string(ptr, it->name, member_string_value.get());
                         set = true;
                     }
                 }
@@ -110,8 +110,8 @@ struct string_converter
                 boost::property_tree::ptree pt;
                 for (auto it : td->members)
                 {
-                    auto member_string_value = td->get_property_to_string(&value, it.name);
-                    pt.put(it.name, member_string_value);
+                    auto member_string_value = td->get_property_to_string(&value, it->name);
+                    pt.put(it->name, member_string_value);
                 }
                 std::stringstream sstream;
                 write_json(sstream, pt);

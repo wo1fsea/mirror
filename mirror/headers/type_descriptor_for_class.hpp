@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <type_traits>
+#include <memory>
 #include <boost/preprocessor.hpp>
 
 #include "string_converter.hpp"
@@ -66,18 +67,27 @@ namespace mirror
 		}
 	};
 
-	struct method_descriptor
+	class method_descriptor
 	{
+	public:
 		const char* name;
 		type_descriptor * type_descriptor_ptr;
 		method_descriptor(const char* _name) : name(_name){}
 		method_descriptor(const char* _name, type_descriptor* _type_descriptor_ptr) : name(_name), type_descriptor_ptr(_type_descriptor_ptr) {}
+
+		virtual std::tuple<bool, std::any> invoke(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args)
+		{
+			return {false, std::any()};
+		}
+
 	};
 
 	template <typename _parent_type>
 	struct method_descriptor_t : public method_descriptor
 	{
 	public:
+		using method_ptr_type = typename void(_parent_type::*)(void);
+
 		using method_descriptor::method_descriptor;
 
 		static type_descriptor* get_parent_type_descriptor_ptr()
@@ -90,42 +100,42 @@ namespace mirror
 	class type_descriptor_for_class : public type_descriptor_t<T>
 	{
 	public:
-		using member_descriptors = std::vector<member_descriptor_t<T>>;
-		using method_descriptors = std::vector<method_descriptor_t<T>>;
+		using member_descriptors = std::vector<std::shared_ptr<member_descriptor_t<T>>>;
+		using method_descriptors = std::vector<std::shared_ptr<method_descriptor_t<T>>>;
 
-		using member_descriptors_map = std::map<std::string, member_descriptor_t<T>>;
-		using method_descriptors_map = std::map<std::string, method_descriptor_t<T>>;
+		using member_descriptors_map = std::map<std::string, std::shared_ptr<member_descriptor_t<T>>>;
+		using method_descriptors_map = std::map<std::string, std::shared_ptr<method_descriptor_t<T>>>;
 
 		member_descriptors members;
 		member_descriptors_map members_map;
 
 		method_descriptors methods;
 		method_descriptors_map methods_map;
-
+		
 		type_descriptor_for_class(const char* type_name, size_t type_size, member_descriptors type_members = {}, method_descriptors type_methods = {}) : type_descriptor_t(type_name, type_size),
 			members(type_members), methods(type_methods)
 		{
 			for (auto member : members)
 			{
-				members_map.emplace(member.name, member);
+				members_map.emplace(member->name, member);
 			}
 			for (auto method : methods)
 			{
-				methods_map.emplace(method.name, method);
+				methods_map.emplace(method->name, method);
 			}
 		}
-
+				
 		member_descriptor* get_member_descriptor(std::string member_name)
 		{
 			auto it = members_map.find(member_name);
-			return it == members_map.end() ? nullptr : &it->second;
+			return it == members_map.end() ? nullptr : it->second.get();
 		}
 
-		// method_descriptor* get_method_descriptor(std::string method_name)
-		// {
-		// 	auto it = methods_map.find(method_name);
-		// 	return it == methods_map.end() ? nullptr : &it->second;
-		// }
+		method_descriptor* get_method_descriptor(std::string method_name)
+		{
+			auto it = methods_map.find(method_name);
+			return it == methods_map.end() ? nullptr : it->second.get();
+		}
 
 		bool set_property(void* ptr, std::string member_name, std::any value)
 		{
@@ -230,7 +240,7 @@ template <typename T>
 struct mirror::type_descriptor_resolver;
 
 #define REFLECTABLE_MEMBER(member_name) \
-    mirror::member_descriptor_t<T>(     \
+    std::make_shared<mirror::member_descriptor_t<T>>(     \
         #member_name,                   \
         offsetof(T, member_name),       \
         mirror::type_descriptor_resolver<decltype(T::member_name)>::get()),
@@ -239,7 +249,7 @@ struct mirror::type_descriptor_resolver;
     REFLECTABLE_MEMBER(x)
 
 #define REFLECTABLE_METHOD(method_name) \
-    mirror::method_descriptor_t<T>(     \
+     std::make_shared<mirror::method_descriptor_t<T>>(     \
         #method_name,                   \
         mirror::type_descriptor_resolver<decltype(&T::method_name)>::get()),
 

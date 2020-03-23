@@ -83,6 +83,7 @@ private:
 	}
 
 public:
+	using void_signature = void*;
 	using args_list = std::tuple<args_types...>;
 	template <int i>
 	using i_args_type = typename std::tuple_element<i, args_list>::type;
@@ -90,6 +91,11 @@ public:
 	static constexpr size_t args_size = std::tuple_size_v<args_list>;
 	static constexpr bool has_no_return = std::is_void<return_type>::value;
 
+	std::tuple<bool, std::any> invoke(std::any instance_ptr, void_signature function_ptr, std::vector<std::any> args)
+	{
+		return _invoke<has_no_return>(instance_ptr, static_cast<signature>(function_ptr), args);
+	}
+	
 	std::tuple<bool, std::any> invoke(std::any function_ptr, std::vector<std::any> args)
 	{
 		return _invoke<has_no_return>(function_ptr, args);
@@ -142,6 +148,7 @@ private:
 	}
 
 public:
+	using void_signature = void(instance_type::*)(void);
 	using args_list = std::tuple<args_types...>;
 	template <int i>
 	using i_args_type = typename std::tuple_element<i, args_list>::type;
@@ -149,6 +156,11 @@ public:
 	static constexpr size_t args_size = std::tuple_size_v<args_list>;
 	static constexpr bool has_no_return = std::is_void<return_type>::value;
 
+	std::tuple<bool, std::any> invoke(std::any instance_ptr, void_signature function_ptr, std::vector<std::any> args)
+	{
+		return _invoke<has_no_return>(instance_ptr, static_cast<signature>(function_ptr), args);
+	}
+	
 	std::tuple<bool, std::any> invoke(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args)
 	{
 		return _invoke<has_no_return>(instance_ptr, function_ptr, args);
