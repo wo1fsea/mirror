@@ -72,10 +72,9 @@ namespace mirror
 	public:
 		const char* name;
 		type_descriptor * type_descriptor_ptr;
-		method_descriptor(const char* _name) : name(_name){}
 		method_descriptor(const char* _name, type_descriptor* _type_descriptor_ptr) : name(_name), type_descriptor_ptr(_type_descriptor_ptr) {}
 
-		virtual std::tuple<bool, std::any> invoke(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args)
+		virtual std::tuple<bool, std::any> invoke(std::any instance_ptr, std::vector<std::any> args)
 		{
 			return {false, std::any()};
 		}
@@ -83,12 +82,14 @@ namespace mirror
 	};
 
 	template <typename _parent_type>
-	struct method_descriptor_t : public method_descriptor
+	class method_descriptor_t : public method_descriptor
 	{
 	public:
-		using method_ptr_type = typename void(_parent_type::*)(void);
+		using void_signature = typename void(_parent_type::*)(void);
 
-		using method_descriptor::method_descriptor;
+		void_signature method_ptr;
+
+		method_descriptor_t(const char* _name, void_signature _method_ptr, type_descriptor* _type_descriptor_ptr) : method_ptr(_method_ptr), method_descriptor(_name, _type_descriptor_ptr) {}
 
 		static type_descriptor* get_parent_type_descriptor_ptr()
 		{
@@ -96,6 +97,25 @@ namespace mirror
 		}
 	};
 
+	template <typename _parent_type, typename signature>
+	class method_descriptor_t2 : public method_descriptor_t<_parent_type>
+	{
+	public:
+		using method_descriptor_t::method_descriptor_t;
+		virtual std::tuple<bool, std::any> invoke(std::any instance_ptr, std::vector<std::any> args)
+		{
+			auto method_ptr_t = (signature)(method_ptr);
+			if (type_descriptor_ptr)
+			{
+				return type_descriptor_ptr->invoke(instance_ptr, method_ptr, args);
+			}
+			else 
+			{
+				return {false, std::any()};
+			}
+		}
+	};
+	
 	template <typename T>
 	class type_descriptor_for_class : public type_descriptor_t<T>
 	{
@@ -125,13 +145,13 @@ namespace mirror
 			}
 		}
 				
-		member_descriptor* get_member_descriptor(std::string member_name)
+		member_descriptor_t<T>* get_member_descriptor(std::string member_name)
 		{
 			auto it = members_map.find(member_name);
 			return it == members_map.end() ? nullptr : it->second.get();
 		}
 
-		method_descriptor* get_method_descriptor(std::string method_name)
+		method_descriptor_t<T>* get_method_descriptor(std::string method_name)
 		{
 			auto it = methods_map.find(method_name);
 			return it == methods_map.end() ? nullptr : it->second.get();
@@ -217,17 +237,17 @@ namespace mirror
 
 		std::tuple<bool,std::any> invoke_method(void *ptr, std::string method_name, std::vector<std::any> args)
 		{
-			// if (!ptr)
-			// {
-			// 	return {false, std::any()};
-			// }
+			 if (!ptr)
+			 {
+			 	return {false, std::any()};
+			 }
 
-			// auto md = this->get_method_descriptor(method_name);
-			// if (!md || !md->type_descriptor_ptr)
-			// {
-			// 	return {false, std::any()};
-			// }
-			// auto ptr_t = static_cast<T*>(ptr); 
+			 auto md = this->get_method_descriptor(method_name);
+			 if (!md || !md->type_descriptor_ptr)
+			 {
+			 	return {false, std::any()};
+			 }
+			 auto ptr_t = static_cast<T*>(ptr); 
 			return {false, std::any()};
 			//return md->type_descriptor_ptr->invoke(ptr_t, method_name, args);
 		}
@@ -249,8 +269,9 @@ struct mirror::type_descriptor_resolver;
     REFLECTABLE_MEMBER(x)
 
 #define REFLECTABLE_METHOD(method_name) \
-     std::make_shared<mirror::method_descriptor_t<T>>(     \
+     std::make_shared<mirror::method_descriptor_t2<T, decltype(&T::method_name)>>(     \
         #method_name,                   \
+		(mirror::method_descriptor_t<T>::void_signature)&T::method_name,				\
         mirror::type_descriptor_resolver<decltype(&T::method_name)>::get()),
 
 #define REFLECTABLE_METHOD_FOR_EACH(r, data, i, x) \

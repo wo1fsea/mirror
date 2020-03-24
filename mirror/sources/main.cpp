@@ -44,7 +44,7 @@ public:
 	}
 	int no_args() const { return 1; }
 	void no_return() noexcept { std::cout << "AAAA" << std::endl; }
-	static int b(int a, int b, int c) { return a + b + c; }
+	 int b(int a, int b, int c) { return a + b + c; }
 };
 
 REFLECTABLE_ENUM(
@@ -74,7 +74,7 @@ REFLECTABLE_CLASS_WITH_METHOD(
 		double_member,
 		string_member,
 		stc),
-	(a, b))
+	(a, b, no_return))
 
 // std::unordered_map
 // std::unordered_multimap
@@ -88,16 +88,18 @@ int main()
 {
 	test_class tc;
 
-	auto f = mirror::type_descriptor_resolver<decltype(&a)>::get();
-	auto f2 = mirror::type_descriptor_resolver<decltype(&test_class::no_args)>::get();
-	auto f3 = mirror::type_descriptor_resolver<decltype(&test_class::no_return)>::get();
-	std::cout << std::any_cast<int>(std::get<1>(f->invoke(&a, {std::any(1), std::any(2), std::any(3)}))) << std::endl;
+	//auto f = mirror::type_descriptor_resolver<decltype(&a)>::get();
+	//auto f2 = mirror::type_descriptor_resolver<decltype(&test_class::no_args)>::get();
+	//auto f3 = mirror::type_descriptor_resolver<decltype(&test_class::no_return)>::get();
+	//std::cout << std::any_cast<int>(std::get<1>(f->invoke(&a, {std::any(1), std::any(2), std::any(3)}))) << std::endl;
 
 	// std::cout << std::any_cast<int>(std::get<1>(f->invoke(&tc, &test_class::a, {std::any(1), std::any(2), std::any(3)}))) << std::endl;
-	std::cout << f2->call(&tc, &test_class::no_args, std::make_tuple()) << std::endl;
-	f3->call(&tc, &test_class::no_return, std::make_tuple());
+	//std::cout << f2->call(&tc, &test_class::no_args, std::make_tuple()) << std::endl;
+	//f3->call(&tc, &test_class::no_return, std::make_tuple());
 
-	//auto td = mirror::type_descriptor_resolver<decltype(tc)>::get();
+	auto td = mirror::type_descriptor_resolver<decltype(tc)>::get();
+	auto md = td->get_method_descriptor("no_return");
+	md->invoke(&tc, std::vector<std::any>());
 
 	//auto atd = mirror::type_descriptor_resolver<decltype(&test_class::b)>::get();
 	//std::cout << std::get<0>(atd->invoke(a, {std::any(1), std::any(2), std::any(3)})) << std::endl;
