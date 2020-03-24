@@ -43,7 +43,7 @@ public:
 		return a + b + c;
 	}
 	int no_args() const { return 1; }
-	void no_return() noexcept { std::cout << "AAAA" << std::endl; }
+	void no_return() noexcept  { std::cout << "AAAA" << std::endl; }
 	 int b(int a, int b, int c) { return a + b + c; }
 };
 
@@ -100,7 +100,7 @@ int main()
 	auto td = mirror::type_descriptor_resolver<decltype(tc)>::get();
 	auto md = td->get_method_descriptor("no_return");
 	md->invoke(&tc, std::vector<std::any>());
-
+	std::cout<< std::any_cast<int>(std::get<1>(td->invoke_method(&tc, "a", std::vector<std::any>({1,2,3}))));
 	//auto atd = mirror::type_descriptor_resolver<decltype(&test_class::b)>::get();
 	//std::cout << std::get<0>(atd->invoke(a, {std::any(1), std::any(2), std::any(3)})) << std::endl;
 
