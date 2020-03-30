@@ -40,7 +40,7 @@ struct type_descriptor_resolver
     {                                                                  \
         static type_descriptor *get()                                  \
         {                                                              \
-            static type_descriptor_for_primitive<x> td(#x, sizeof(x)); \
+            static type_descriptor_for_primitive<x> td(#x);			   \
             return &td;                                                \
         }                                                              \
     };

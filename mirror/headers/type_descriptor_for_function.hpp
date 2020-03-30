@@ -14,7 +14,8 @@
 
 namespace mirror
 {
-class type_descriptor;
+template <typename T>
+class type_descriptor_t;
 
 template <typename signature, typename return_type, typename... args_types>
 class type_descriptor_for_function_impl;
@@ -23,10 +24,10 @@ template <typename signature, typename instance_type, typename return_type, type
 class type_descriptor_for_method_impl;
 
 template <typename signature, typename return_type, typename... args_types>
-class type_descriptor_for_function : public type_descriptor_for_function_impl<signature, return_type, args_types...>, public type_descriptor
+class type_descriptor_for_function : public type_descriptor_for_function_impl<signature, return_type, args_types...>, public type_descriptor_t<signature>
 {
 public:
-	using type_descriptor::type_descriptor;
+	using type_descriptor_t::type_descriptor_t;
 	virtual std::tuple<bool, std::any> invoke(std::any function_ptr, std::vector<std::any> args)
 	{
 		return type_descriptor_for_function_impl::invoke(function_ptr, args);
@@ -34,10 +35,10 @@ public:
 };
 
 template <typename signature, typename instance_type, typename return_type, typename... args_types>
-struct type_descriptor_for_method : public type_descriptor_for_method_impl<signature, instance_type, return_type, args_types...>, public type_descriptor
+struct type_descriptor_for_method : public type_descriptor_for_method_impl<signature, instance_type, return_type, args_types...>, public type_descriptor_t<signature>
 {
 public:
-	using type_descriptor::type_descriptor;
+	using type_descriptor_t::type_descriptor_t;
 	virtual std::tuple<bool, std::any> invoke(std::any instance_ptr, std::any function_ptr, std::vector<std::any> args)
 	{
 		return type_descriptor_for_method_impl::invoke(instance_ptr, function_ptr, args);
@@ -246,7 +247,7 @@ struct type_descriptor_resolver<return_type(args_types...)>
 	using signature = return_type (*)(args_types...);
 	static type_descriptor_for_function<signature, return_type, args_types...> *get()
 	{
-		static type_descriptor_for_function<signature, return_type, args_types...> td("function", 0);
+		static type_descriptor_for_function<signature, return_type, args_types...> td("function");
 		return &td;
 	}
 };
@@ -257,7 +258,7 @@ struct type_descriptor_resolver<return_type(args_types...) noexcept>
 	using signature = return_type (*)(args_types...) noexcept;
 	static type_descriptor_for_function<signature, return_type, args_types...> *get()
 	{
-		static type_descriptor_for_function<signature, return_type, args_types...> td("function", 0);
+		static type_descriptor_for_function<signature, return_type, args_types...> td("function");
 		return &td;
 	}
 };
@@ -268,7 +269,7 @@ struct type_descriptor_resolver<return_type (*)(args_types...)>
 	using signature = return_type (*)(args_types...);
 	static type_descriptor_for_function<signature, return_type, args_types...> *get()
 	{
-		static type_descriptor_for_function<signature, return_type, args_types...> td("function_ptr", sizeof(&a));
+		static type_descriptor_for_function<signature, return_type, args_types...> td("function_ptr");
 		return &td;
 	}
 };
@@ -279,7 +280,7 @@ struct type_descriptor_resolver<return_type (*)(args_types...) noexcept>
 	using signature = return_type (*)(args_types...) noexcept;
 	static type_descriptor_for_function<signature, return_type, args_types...> *get()
 	{
-		static type_descriptor_for_function<signature, return_type, args_types...> td("function_ptr", sizeof(&a));
+		static type_descriptor_for_function<signature, return_type, args_types...> td("function_ptr");
 		return &td;
 	}
 };
@@ -290,7 +291,7 @@ struct type_descriptor_resolver<return_type (instance_type::*)(args_types...)>
 	using signature = return_type (instance_type::*)(args_types...);
 	static type_descriptor_for_method<signature, instance_type, return_type, args_types...> *get()
 	{
-		static type_descriptor_for_method<signature, instance_type, return_type, args_types...> td("class_method_ptr", sizeof(&a));
+		static type_descriptor_for_method<signature, instance_type, return_type, args_types...> td("class_method_ptr");
 		return &td;
 	}
 };
@@ -301,7 +302,7 @@ struct type_descriptor_resolver<return_type (instance_type::*)(args_types...) no
 	using signature = return_type (instance_type::*)(args_types...) noexcept;
 	static type_descriptor_for_method<signature, instance_type, return_type, args_types...> *get()
 	{
-		static type_descriptor_for_method<signature, instance_type, return_type, args_types...> td("class_method_ptr", sizeof(&a));
+		static type_descriptor_for_method<signature, instance_type, return_type, args_types...> td("class_method_ptr");
 		return &td;
 	}
 };
@@ -312,7 +313,7 @@ struct type_descriptor_resolver<return_type (instance_type::*)(args_types...) co
 	using signature = return_type (instance_type::*)(args_types...) const;
 	static type_descriptor_for_method<signature, instance_type, return_type, args_types...> *get()
 	{
-		static type_descriptor_for_method<signature, instance_type, return_type, args_types...> td("class_method_ptr", sizeof(&a));
+		static type_descriptor_for_method<signature, instance_type, return_type, args_types...> td("class_method_ptr");
 		return &td;
 	}
 };
@@ -323,7 +324,7 @@ struct type_descriptor_resolver<return_type (instance_type::*)(args_types...) co
 	using signature = return_type (instance_type::*)(args_types...) const noexcept;
 	static type_descriptor_for_method<signature, instance_type, return_type, args_types...> *get()
 	{
-		static type_descriptor_for_method<signature, instance_type, return_type, args_types...> td("class_method_ptr", sizeof(&a));
+		static type_descriptor_for_method<signature, instance_type, return_type, args_types...> td("class_method_ptr");
 		return &td;
 	}
 };

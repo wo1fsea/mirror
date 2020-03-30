@@ -26,8 +26,7 @@ public:
     std::map<std::string, underlying_type> enumerators_map;
     std::map<underlying_type, std::string> enumerators_map_r;
 
-    type_descriptor_for_enum(const char *type_name, size_t type_size, std::map<std::string, int> enum_enumerators_map = {}) : type_descriptor_t(type_name, type_size),
-                                                                                                                              enumerators_map(enum_enumerators_map)
+    type_descriptor_for_enum(const char *type_name, std::map<std::string, int> enum_enumerators_map = {}) : type_descriptor_t(type_name), enumerators_map(enum_enumerators_map)
     {
         for (auto const &element : enumerators_map)
         {
@@ -85,7 +84,6 @@ public:
         {                                                                                                                                                      \
             static mirror::type_descriptor_for_enum<T> td(                                                                                                             \
                 #enum_name,                                                                                                                                    \
-                sizeof(T),                                                                                                                                     \
                 {BOOST_PP_SEQ_FOR_EACH_I(REFLECTABLE_ENUM_ENUMERATORS_FOR_EACH, data, BOOST_PP_TUPLE_TO_SEQ(BOOST_PP_TUPLE_SIZE(enumerators), enumerators))}); \
             return &td;                                                                                                                                        \
         }                                                                                                                                                      \

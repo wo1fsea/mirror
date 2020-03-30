@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <any>
+#include <typeinfo>
 
 #include "error_handler.hpp"
 
@@ -15,10 +16,11 @@ namespace mirror
 class type_descriptor
 {
 public:
+	const std::type_info& type_info;
+    const size_t size;
     const char *name;
-    size_t size;
 
-    type_descriptor(const char *type_name, size_t type_size) : name(type_name), size(type_size) {}
+    type_descriptor(const char *type_name, const std::type_info& _type_info, size_t type_size) : name(type_name), type_info(_type_info), size(type_size) {}
 
 	virtual std::tuple<bool, std::any> invoke(std::any function_ptr, std::vector<std::any> args)
 	{
@@ -42,7 +44,8 @@ class type_descriptor_t : public type_descriptor
 {
 public:
     using type = T;
-    using type_descriptor::type_descriptor;
+
+	type_descriptor_t(const char *type_name): type_descriptor(type_name, typeid(T), sizeof(T)){}
     
     bool set_value(void *ptr, std::any value)
     {

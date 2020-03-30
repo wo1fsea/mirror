@@ -132,7 +132,7 @@ namespace mirror
 		method_descriptors methods;
 		method_descriptors_map methods_map;
 		
-		type_descriptor_for_class(const char* type_name, size_t type_size, member_descriptors type_members = {}, method_descriptors type_methods = {}) : type_descriptor_t(type_name, type_size),
+		type_descriptor_for_class(const char* type_name, member_descriptors type_members = {}, method_descriptors type_methods = {}) : type_descriptor_t(type_name),
 			members(type_members), methods(type_methods)
 		{
 			for (auto member : members)
@@ -286,7 +286,6 @@ struct mirror::type_descriptor_resolver;
         {                                                                                                                                    \
             static type_descriptor_for_class<T> td(                                                                                          \
                 #class_name,                                                                                                                 \
-                sizeof(T),                                                                                                                   \
                 {BOOST_PP_SEQ_FOR_EACH_I(REFLECTABLE_MEMBER_FOR_EACH, data, BOOST_PP_TUPLE_TO_SEQ(BOOST_PP_TUPLE_SIZE(members), members))}); \
             return &td;                                                                                                                      \
         }                                                                                                                                    \
@@ -302,7 +301,6 @@ struct mirror::type_descriptor_resolver;
         {                                                                                                                                    \
             static type_descriptor_for_class<T> td(                                                                                          \
                 #class_name,                                                                                                                 \
-                sizeof(T),                                                                                                                   \
                 {BOOST_PP_SEQ_FOR_EACH_I(REFLECTABLE_MEMBER_FOR_EACH, data, BOOST_PP_TUPLE_TO_SEQ(BOOST_PP_TUPLE_SIZE(members), members))},  \
                 {BOOST_PP_SEQ_FOR_EACH_I(REFLECTABLE_METHOD_FOR_EACH, data, BOOST_PP_TUPLE_TO_SEQ(BOOST_PP_TUPLE_SIZE(methods), methods))}   \
             );																																 \
