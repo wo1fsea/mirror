@@ -12,6 +12,8 @@
 #include <boost/preprocessor/tuple/rem.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
 
+#include "function_traits.hpp"
+
 namespace mirror
 {
 template <typename T>
@@ -238,9 +240,30 @@ BOOST_PP_REPEAT(128, DEFINE_METHOD_INVOK_HELPER_REPEAT, text)
 #undef DEFINE_FUNCTION_INVOK_HELPER_REPEAT
 #undef DEFINE_METHOD_INVOK_HELPER_REPEAT
 
-template <typename signature>
-struct type_descriptor_resolver;
+template <typename raw_signature, bool is_mem_func_ptr>
+struct type_descriptor_resolver_for_function_selector {};
 
+template <typename raw_signature, false>
+struct type_descriptor_resolver_for_function_selector {};
+{
+	using signature = function_traits<raw_signature>::signature;
+	static type_descriptor_for_function<signature, return_type, args_types...> *get()
+	{
+		static type_descriptor_for_function<signature, return_type, args_types...> td("function");
+		return &td;
+	}
+};
+
+template <typename raw_signature, true>
+struct type_descriptor_resolver_for_function_selector {};
+{
+	using signature = function_traits<raw_signature>::signature;
+	static type_descriptor_for_function<signature, return_type, args_types...> *get()
+	{
+		static type_descriptor_for_function<signature, return_type, args_types...> td("class_method_ptr");
+		return &td;
+	}
+};
 template <typename return_type, typename... args_types>
 struct type_descriptor_resolver<return_type(args_types...)>
 {
