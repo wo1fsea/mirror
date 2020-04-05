@@ -1,14 +1,10 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.12)
 project(mirror)
 
 set(CMAKE_CXX_STANDARD 17)
-
-if (WIN32)
-    set(Boost_INCLUDE_DIRS C:/boost_1_72_0)
-endif()
+find_package(Boost)
 
 if (APPLE)
-    find_package(Boost)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g")
 endif()
 

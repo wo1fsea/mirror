@@ -22,7 +22,7 @@ public:
     using underlying_type = typename std::underlying_type<T>::type;
 
     static constexpr underlying_type enumerator_unfound_value = std::numeric_limits<underlying_type>::max();
-    static constexpr char enumerator_unfound_string[]  = {"enumerator_unfound"};
+    static constexpr char enumerator_unfound_string[]  = "enumerator_unfound";
 
     std::map<std::string, underlying_type> enumerators_map;
     std::map<underlying_type, std::string> enumerators_map_r;
