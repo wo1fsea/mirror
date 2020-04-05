@@ -85,7 +85,7 @@ namespace mirror
 	class method_descriptor_of : public method_descriptor
 	{
 	public:
-		using void_signature = typename void(_parent_type::*)(void);
+		using void_signature = void(_parent_type::*)(void);
 
 		void_signature method_ptr;
 
@@ -101,13 +101,13 @@ namespace mirror
 	class method_descriptor_with_signature_of : public method_descriptor_of<_parent_type>
 	{
 	public:
-		using method_descriptor_of::method_descriptor_of;
+		using method_descriptor_of<_parent_type>::method_descriptor_of;
 		virtual std::tuple<bool, std::any> invoke(std::any instance_ptr, std::vector<std::any> args)
 		{
-			auto method_ptr_t = (signature)(method_ptr);
-			if (type_descriptor_ptr)
+			auto method_ptr_t = (signature)(this->method_ptr);
+			if (this->type_descriptor_ptr)
 			{
-				return type_descriptor_ptr->invoke(instance_ptr, method_ptr_t, args);
+				return this->type_descriptor_ptr->invoke(instance_ptr, method_ptr_t, args);
 			}
 			else 
 			{
@@ -132,7 +132,7 @@ namespace mirror
 		method_descriptors methods;
 		method_descriptors_map methods_map;
 		
-		type_descriptor_for_class(const char* type_name, member_descriptors type_members = {}, method_descriptors type_methods = {}) : type_descriptor_t(type_name),
+		type_descriptor_for_class(const char* type_name, member_descriptors type_members = {}, method_descriptors type_methods = {}) : type_descriptor_t<T>(type_name),
 			members(type_members), methods(type_methods)
 		{
 			for (auto member : members)
@@ -254,9 +254,10 @@ namespace mirror
 
 } // namespace mirror
 
-
-template <typename T>
-struct mirror::type_descriptor_resolver;
+namespace mirror{
+	template <typename T>
+	struct type_descriptor_resolver;
+};
 
 #define REFLECTABLE_MEMBER(member_name) \
     std::make_shared<mirror::member_descriptor_of<T>>(     \

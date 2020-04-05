@@ -28,7 +28,7 @@ template <typename T>
 class type_descriptor_for_primitive : public type_descriptor_t<T>
 {
 public:
-    using type_descriptor_t::type_descriptor_t;
+    using type_descriptor_t<T>::type_descriptor_t;
 };
 
 } // namespace mirror

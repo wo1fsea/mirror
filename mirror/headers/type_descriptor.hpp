@@ -12,6 +12,8 @@
 
 namespace mirror
 {
+template <typename T>
+struct type_converter;
 
 class type_descriptor
 {

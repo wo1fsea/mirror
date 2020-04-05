@@ -4,16 +4,16 @@ project(mirror)
 set(CMAKE_CXX_STANDARD 17)
 
 if (WIN32)
-    set(BOOST_INCLUDE_PATH C:/boost_1_72_0)
+    set(Boost_INCLUDE_DIRS C:/boost_1_72_0)
 endif()
 
 if (APPLE)
-    set(BOOST_INCLUDE_PATH /usr/local/Cellar/boost/1.72.0/include/)
+    find_package(Boost)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g")
 endif()
 
 include_directories(mirror/headers/
-                   ${BOOST_INCLUDE_PATH})
+                   ${Boost_INCLUDE_DIRS})
 
 file(GLOB PROJECT_HEADERS mirror/headers/*.hpp
                           mirror/headers/*.h)

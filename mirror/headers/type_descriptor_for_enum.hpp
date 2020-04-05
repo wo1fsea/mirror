@@ -21,12 +21,13 @@ class type_descriptor_for_enum : public type_descriptor_t<T>
 public:
     using underlying_type = typename std::underlying_type<T>::type;
 
-    static const underlying_type enumerator_unfound_value = std::numeric_limits<underlying_type>::max();
-    static const char enumerator_unfound_string[];
+    static constexpr underlying_type enumerator_unfound_value = std::numeric_limits<underlying_type>::max();
+    static constexpr char enumerator_unfound_string[]  = {"enumerator_unfound"};
+
     std::map<std::string, underlying_type> enumerators_map;
     std::map<underlying_type, std::string> enumerators_map_r;
 
-    type_descriptor_for_enum(const char *type_name, std::map<std::string, int> enum_enumerators_map = {}) : type_descriptor_t(type_name), enumerators_map(enum_enumerators_map)
+    type_descriptor_for_enum(const char *type_name, std::map<std::string, underlying_type> enum_enumerators_map = {}) : type_descriptor_t<T>(type_name), enumerators_map(enum_enumerators_map)
     {
         for (auto const &element : enumerators_map)
         {
@@ -88,8 +89,7 @@ public:
             return &td;                                                                                                                                        \
         }                                                                                                                                                      \
     };                                                                                                                                                         \
-    ENUM_CONVERTER(enum_name)                                                                                                                                  \
-    const char mirror::type_descriptor_for_enum<enum_name>::enumerator_unfound_string[] = {"enumerator_unfound"};
+    ENUM_CONVERTER(enum_name)
 
 
 
