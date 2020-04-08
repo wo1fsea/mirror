@@ -44,7 +44,7 @@ public:
 	}
 	int no_args() const { return 1; }
 	void no_return() noexcept  { std::cout << "AAAA" << std::endl; }
-	 int b(int a, int b, int c) { return a + b + c; }
+	int b(int a, int b, int c) { return a + b + c; }
 };
 
 REFLECTABLE_ENUM(

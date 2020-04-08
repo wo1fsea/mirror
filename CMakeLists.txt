@@ -2,18 +2,18 @@ cmake_minimum_required(VERSION 3.12)
 project(mirror)
 
 set(CMAKE_CXX_STANDARD 17)
-find_package(Boost)
+find_package(Boost REQUIRED)
 
 if (APPLE)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g")
 endif()
 
-include_directories(mirror/headers/
+include_directories(include
                    ${Boost_INCLUDE_DIRS})
 
-file(GLOB PROJECT_HEADERS mirror/headers/*.hpp
-                          mirror/headers/*.h)
-file(GLOB PROJECT_SOURCES mirror/sources/*.cpp)
+file(GLOB PROJECT_HEADERS include/*.hpp
+                          include/*.h)
+file(GLOB PROJECT_SOURCES src/*.cpp)
 
 file(GLOB PROJECT_CONFIGS CMakeLists.txt
                           Readme.md
@@ -21,8 +21,8 @@ file(GLOB PROJECT_CONFIGS CMakeLists.txt
                          .gitignore
                          .gitmodules)
 
-source_group("headers" FILES ${PROJECT_HEADERS})
-source_group("sources" FILES ${PROJECT_SOURCES})
+source_group("include" FILES ${PROJECT_HEADERS})
+source_group("src" FILES ${PROJECT_SOURCES})
 
 add_executable(${PROJECT_NAME} ${PROJECT_HEADERS} ${PROJECT_SOURCES})
 
