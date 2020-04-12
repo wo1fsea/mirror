@@ -6,8 +6,6 @@ compiler:
 
 os:
     - linux
-    - macos
-    - windows
 
 install: 
     - git clone https://github.com/Microsoft/vcpkg.git
