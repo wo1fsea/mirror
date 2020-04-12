@@ -24,6 +24,8 @@ class type_descriptor_t;
     long double,                   \
     std::string)
 
+// void*
+
 template <typename T>
 class type_descriptor_for_primitive : public type_descriptor_t<T>
 {

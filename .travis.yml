@@ -1,0 +1,24 @@
+language: cpp
+sudo: required
+dist: bionic
+compiler:
+    - clang
+    
+os:
+    - linux
+    - macos
+    - windows
+
+install: 
+    - git clone https://github.com/Microsoft/vcpkg.git
+    - cd vcpkg
+    - ./bootstrap-vcpkg.sh
+    - ./vcpkg install boost-test
+    - cd ../
+
+script:
+    - mkdir ./build
+    - cd ./build 
+    - cmake -DCMAKE_TOOLCHAIN_FILE="../vcpkg/scripts/buildsystems/vcpkg.cmake" ../ 
+    - cmake --build ./
+    - ctest
