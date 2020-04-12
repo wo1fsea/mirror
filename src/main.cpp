@@ -100,7 +100,7 @@ int main()
 	auto td = mirror::type_descriptor_resolver<decltype(tc)>::get();
 	auto md = td->get_method_descriptor("no_return");
 	md->invoke(&tc, std::vector<std::any>());
-	std::cout<< std::any_cast<int>(std::get<1>(td->invoke_method(&tc, "a", std::vector<std::any>({1,2,3}))));
+	std::cout<< std::any_cast<int>(std::get<1>(td->invoke_method(&tc, "a", std::vector<std::any>({1,2,3})))) << std::endl;
 	//auto atd = mirror::type_descriptor_resolver<decltype(&test_class::b)>::get();
 	//std::cout << std::get<0>(atd->invoke(a, {std::any(1), std::any(2), std::any(3)})) << std::endl;
 
@@ -127,6 +127,8 @@ int main()
 	//}
 	//std::cout << td->name << ", " << td->size << std::endl;
 	//std::cout << "go " << std::endl;
+
+	std::cout << sizeof(decltype(&test_class::a)) << std::endl;
 
 	return 0;
 }
